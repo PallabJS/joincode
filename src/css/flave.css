@@ -1,0 +1,123 @@
+:root {
+    --bg: rgb(68, 153, 187);
+    --black: rgba(0, 0, 0, 0.8);
+    --white: rgba(255, 255, 255, 0.8);
+    --shade: rgba(0, 0, 0, 0.2);
+}
+a {
+    color: black;
+    text-decoration: none;
+}
+
+/* PAGE HEADER */
+.flave_header1 {
+    color: white;
+    background-color: var(--bg);
+    text-align: center;
+    font-size: 30pt;
+    padding: 5px 5px;
+}
+.flave_header2 {
+    color: white;
+    background-color: var(--bg);
+    text-align: center;
+    font-size: 20pt;
+    padding: 5px 5px;
+}
+.flave_header3 {
+    color: white;
+    background-color: var(--bg);
+    text-align: center;
+    font-size: 16pt;
+    padding: 5px 5px;
+    border-radius: 5px;
+}
+.flave_title {
+    padding: 5px;
+    border-radius: 10px;
+    color: black;
+    background-color: var(--white);
+    text-align: center;
+    font-size: 14pt;
+    margin: 10px 0;
+}
+
+/* NAVIGATION */
+.flave_navbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--bg);
+}
+.flave_navitem {
+    margin-right: 5px;
+    color: var(--black);
+    font-size: 16pt;
+    padding: 10px 20px;
+}
+.flave_navitem:hover {
+    box-shadow: 0 0 2px 2px var(--white);
+    color: var(--white);
+    background-color: rgb(76, 159, 227);
+}
+.flave_input_text {
+    margin-right: 5px;
+    color: var(--black);
+    font-size: 16pt;
+    padding: 10px 20px;
+    height: 40px;
+    border-radius: 5px;
+    align-self: right;
+    margin-left: auto;
+    outline: none;
+    border: none;
+}
+.button {
+    height: 100%;
+    margin: 5px 0;
+    margin-left: 10px;
+    font-size: 12pt;
+    padding: 0 20px !important;
+    border-radius: 10px;
+}
+.flave_button {
+    color: black;
+    background-color: var(--shade);
+    border-radius: 5px;
+    padding: 5px;
+    outline: none;
+    border: none;
+}
+.flave_button:hover {
+    color: white;
+    background-color: var(--bg);
+}
+
+/* FORM */
+.flave_form {
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0px 0px 5px 5px var(--shade);
+    border-radius: 5px;
+}
+.flave_inputgroup {
+    padding: 5px 10px;
+    margin-top: 10px;
+    display: flex;
+}
+
+.flave_forminput {
+    color: black;
+    padding: 5px 10px;
+    font-size: 12pt;
+    flex: 5;
+    display: flex;
+    border: 1px solid var(--shade);
+    border-radius: 5px;
+}
+label {
+    padding: 5px 0;
+    margin-right: 20px;
+    font-size: 12pt;
+    flex: 3;
+}

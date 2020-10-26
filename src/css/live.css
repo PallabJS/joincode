@@ -1,0 +1,159 @@
+.live {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(50, 50, 50);
+}
+
+.live_header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px 10px;
+    margin-top: 30px;
+}
+
+.live_header_logo {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    width: 100%;
+}
+.activity_header {
+    flex: 0.8 !important;
+    justify-content: center;
+    color: black;
+    background-color: rgb(220, 220, 220);
+    text-align: center;
+    margin: 0;
+    padding: 10px 0px;
+    border-radius: 2px;
+}
+
+.live_body {
+    display: flex;
+    flex-direction: row;
+    margin: auto;
+    width: 100%;
+    height: 100%;
+    padding-inline-start: 10px;
+}
+.createactivitybutton {
+    text-align: center;
+    margin: 5px;
+}
+/* MODAL */
+.newinstance {
+    display: flex;
+    flex: 1;
+}
+.newinstance > h5 {
+    flex: 1;
+    padding: 10px;
+}
+.text_input {
+    flex: 1;
+    margin: 0 10px;
+    font-size: var(--small);
+    padding: 0 2px;
+}
+
+.activity_space {
+    flex: 0.25;
+    background-color: grey;
+    border-radius: 2px;
+    margin: 10px;
+    padding: 1px;
+    height: 96%;
+}
+.activity {
+    margin-top: 10px;
+    border-radius: 2px;
+    padding: 5px 10px;
+    background-color: rgb(61, 61, 61);
+}
+.user_lists {
+    text-align: left;
+    list-style: none;
+    font-size: var(--small);
+    color: white;
+    margin-top: 50px;
+    list-style-type: disc;
+}
+.user_lists > li {
+    padding-left: 20px;
+    margin-left: 30px;
+}
+.join_room_input {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+}
+
+.code_space {
+    flex: 0.75;
+    display: flex;
+    flex-direction: column;
+    border-radius: 2px;
+    background-color: grey;
+    margin: 10px;
+    height: 96%;
+}
+
+.codearea {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    border-radius: 2px;
+    padding: 30px 0;
+    padding-left: 10px;
+    padding-right: 0px;
+}
+.linecount {
+    text-align: center;
+    flex: 0.03;
+    color: white;
+    font-size: var(--small);
+    background-color: green;
+    padding-top: 10px;
+}
+.code {
+    font-size: var(--normal);
+    font-family: "Consolas";
+    resize: none;
+    border-radius: 2px;
+    flex: 0.99;
+    padding: 10px;
+}
+.objectpassive {
+    display: none;
+}
+
+@media screen and (max-width: 1000px) {
+    .live_body {
+        width: 100%;
+    }
+    body {
+        margin: 0;
+        zoom: 0.8;
+    }
+    /* * {
+        padding: 2px !important;
+        margin: 2px !important;
+    } */
+
+    .user_lists > li {
+        margin-left: 50px !important;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    body {
+        margin: 0;
+        zoom: 0.3;
+    }
+}

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/joincode_backend
 /.pnp
 .pnp.js
 
