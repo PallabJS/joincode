@@ -1,6 +1,6 @@
 {
   "name": "joincode",
-  "homepage": "https://pallabjs/github.com/joincode",
+  "homepage": "https://pallabjs.github.io/joincode",
   "version": "0.1.0",
   "dependencies": {
     "@material-ui/core": "^4.11.0",
