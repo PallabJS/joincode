@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useHistory } from 'react-router-dom';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import Images from 'react-bootstrap/Image';
@@ -14,6 +15,9 @@ import step3 from '../images/step3.png';
 
 function Home() {
 
+    // HISTORY
+    let history = useHistory();
+
     // Login info
     const [loginemail, setLoginemail] = useState('');
     const [loginpassword, setLoginpassword] = useState('');
@@ -23,6 +27,16 @@ function Home() {
     const [username, setUsername] = useState('');
     const [signupemail, setSignupemail] = useState('');
     const [signuppassword, setSignuppassword] = useState('');
+
+    // Redirect on login
+    useEffect(() => {
+        var login = {};
+        login.user = localStorage.getItem('userref');
+        login.activeroom = localStorage.getItem('activeroom');
+        if (login.user && login.activeroom) {
+            history.push('/live');
+        }
+    }, [])
 
     return (
         <div id='home'>
@@ -57,21 +71,25 @@ function Home() {
                 </div>
 
                 <div className='home_forms'>
-                    <Login
-                        loginemail={loginemail}
-                        loginpassword={loginpassword}
-                        setLoginemail={setLoginemail}
-                        setLoginpassword={setLoginpassword}
-                    />
+                    <div className='form_container'>
+                        <Login
+                            loginemail={loginemail}
+                            loginpassword={loginpassword}
+                            setLoginemail={setLoginemail}
+                            setLoginpassword={setLoginpassword}
+                        />
+                    </div>
                     <br />
-                    <Signup
-                        signupemail={signupemail}
-                        signuppassword={signuppassword}
-                        setSignupemail={setSignupemail}
-                        setSignuppassword={setSignuppassword}
-                        username={username}
-                        setUsername={setUsername}
-                    />
+                    <div className='form_container'>
+                        <Signup
+                            signupemail={signupemail}
+                            signuppassword={signuppassword}
+                            setSignupemail={setSignupemail}
+                            setSignuppassword={setSignuppassword}
+                            username={username}
+                            setUsername={setUsername}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

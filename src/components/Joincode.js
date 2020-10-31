@@ -4,7 +4,7 @@ function Joincode({ size }) {
     const j = { color: "yellow", fontSize: size + "pt" };
     const c = { color: "blue", fontSize: size + "pt" };
     const brand_text = {
-        fontSize: size - 5 + "pt",
+        fontSize: size - 2 + "pt",
         fontFamily: "Garamond",
         fontWeight: "bold",
         padding: "0px 10px",

@@ -60,8 +60,9 @@ function Login({ loginemail, loginpassword, setLoginemail, setLoginpassword }) {
                 style={{
                     cursor: 'pointer'
                 }}
-                onClick={() => { setShow(!show) }}
-            > Login to your account </h5>
+                onClick={() => { setShow(!show) }}>
+                Login to your account
+            </h5>
 
             {show ?
                 (

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div>
+        <code class='code'>
+            function add(x, y)
+        </code>
+        <code class='code'>
+            {
+        </code>
+        <code class='code'>
+            return (x+y);
+        </code>
+        <code class='code'>
+        }
+        </code>
+    </div>
+
+
+    <script>
+        function htmlToString(streamclass) {
+            let finalcode = "";
+            let codeblocks = document.getElementsByClassName(streamclass);
+            for (let i = 0; i < codeblocks.length; i++) {
+                finalcode = finalcode + " " + codeblocks[i].innerText;
+            }
+            return finalcode;
+        }
+
+        console.log(parseHtmltoString('code'));
+
+    </script>
+</body>
+
+</html>
