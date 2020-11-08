@@ -1,16 +1,19 @@
+@import url('brand.css');
+
+
 .live {
     display: flex;
-    background-color: rgb(50, 50, 50);
+    background-color: var(--black);
 }
 
 .activity_header {
-    flex: 0.8 !important;
+    flex: 0.8;
     justify-content: center;
-    color: black;
+    color: var(--black);
     background-color: rgb(220, 220, 220);
     text-align: center;
     margin: 0;
-    padding: 10px 0px;
+    padding: 5px 0px;
     border-radius: 2px;
 }
 
@@ -21,7 +24,7 @@
     position: fixed;
     width: 100%;
     height: 100%;
-    background-color: rgb(50, 50, 50);
+    background-color: var(--black);
 }
 .createactivitybutton {
     text-align: center;
@@ -34,33 +37,45 @@
 }
 .newinstance > h5 {
     flex: 1;
-    padding: 10px;
 }
 .text_input {
     flex: 1;
     margin: 0 10px;
     font-size: var(--small);
-    padding: 0 2px;
+    padding: 0 10px;
 }
 
 .activity_space {
-    flex: 0.2;
-    background-color: grey;
-    border-radius: 2px;
+    flex-direction: row;
+    background-color: var(--gray);
     margin: 2px;
     padding: 1px;
+    border-radius: 2px;
+    border-right: 3px solid var(--white);
+}
+
+.activity_inner
+{
+    flex: 1;
 }
 .activity {
     margin-top: 10px;
     border-radius: 2px;
     padding: 5px 10px;
-    background-color: rgb(61, 61, 61);
+    background-color: var(--black);
+}
+.active_joincode
+{
+    background-color: var(--green);
+    color: var(--white);
+    padding: 5px 10px;
+    margin: 0 10px;
+    margin-bottom: 0px;
 }
 .user_lists {
     text-align: left;
     list-style: none;
-    font-size: var(--small);
-    color: white;
+    color: var(--white);
     margin-top: 50px;
     list-style-type: disc;
 }
@@ -75,7 +90,15 @@
     margin: 0px 5px;
     width: 10px;
     height: 10px;
-    background-color: rgb(45, 227, 45);
+    background-color: var(--green_strike);
+    border-radius: 100%;
+}
+.offline_mark
+{
+    margin: 0px 5px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--gray);
     border-radius: 100%;
 }
 
@@ -83,27 +106,33 @@
     display: flex;
     flex: 1;
     flex-direction: row;
-    align-items: center;
-    position: relative;
+    margin-top: 10px;
 }
 .join_inputtext
 {
-    margin: 5px;
-    border-radius: 10px;
+    flex: 0.2;
+    margin: 0px 5px;
+    border-radius: 20px;
     font-size: var(--small);
-    padding: 5px;
-    flex: 3;
+    padding: 2px 10px;
     border: none;
     outline: none;
+    width: unset;
+}
+.joinbutton{
+    flex: 0.8;
+    font-size: 12pt;
+    padding: 0px !important;
+    border: 2px solid var(--shade);
 }
 
 /* THE RIGHT MAIN FLEX */
 .code_space {
-    flex: 0.8;
+    flex: 1;
     display: flex;
     flex-direction: column;
     border-radius: 2px;
-    background-color: grey;
+    background-color: var(--gray);
     margin: 2px;
 }
 .live_header {
@@ -130,57 +159,56 @@
 .joincode_header
 {
     flex: 0;
-    margin: 2px 10px;
-    padding: 5px;
-    border: 2px solid rgb(100, 100, 100);
-    font-weight: 500;
-    border-radius: 5px;
-    color: rgb(239, 239, 239);
-    background-color: rgb(68, 153, 187);
+    margin: 2px 0px;
+    padding: 2px 20px;
+    border: 1px solid var(--shade);
+    border-bottom: 3px solid var(--black);
+    font-family: sans-serif;
+    font-weight: 100;
+    font-size: var(--font_normal);
+    border-radius: 2px;
+    color: var(--white);
+    background-color: var(--bg);
 }
 
 .code {
-    font-family: Consolas;
-    resize: none;
     flex: 1;
-    margin: 10px;
-    padding: 10px;
-    padding-bottom: 100px;
-    border: 2px solid var(--black);
-    border-radius: 10px;
-    background-color: white;
-    font-size: 12pt;
-    outline: none;
-    overflow: scroll;
-    color: black;
+    position: absolute;
+    justify-self: center;
+    height: 100%;
+    width: 70%;
 }
-.code::-webkit-scrollbar{
-    display: none;
-}
-.line {
-    width: 100%;
-}
-
-.code:focus
+/* .monaco-editor
 {
-    box-shadow: 1px 1px 2px 2px black;
-}
+    padding-top: 10px;
+} */
 
 .objectpassive {
     display: none;
 }
 
-@media screen and (max-width: 1000px) {
+
+/* ########## ---------- RESPONSIVE STYLING  ---------- ###########*/
+
+@media screen and (max-width: 1200px) {
     .live_body {
         width: 100%;
     }
     .activity_space
     {
-        flex: 0.1 !important;
+        flex: 0 !important;
     }
     .join_room_input
     {
         flex-direction: column;
+    }
+    .joinbutton
+    {
+        margin-top: 5px;
+    }
+    .user_lists > li
+    {
+        padding-left: 0;
     }
     .code_space
     {
@@ -196,7 +224,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        background-color: rgb(50, 50, 50);
+        background-color: var(--black);
     }
     .activity_space
     {
@@ -205,6 +233,15 @@
     .join_room_input
     {
         flex-direction: row;
+    }
+    .join_inputtext
+    {
+        flex: 1;
+    }
+    .joinbutton
+    {
+        flex: 0.1;
+        margin: 0;
     }
     .activity_inner
     {
@@ -219,13 +256,11 @@
     .user_lists
     {
         margin: 0;
-        font-size: 1pt;
     }
     .code_space
     {
         margin: 0
     }
-
     .show
     {
         display: block;

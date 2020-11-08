@@ -11,15 +11,20 @@ import "../css/live.css";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import $ from 'jquery';
+import 'jquery-ui/ui/core';
+import 'jquery-ui/ui/widgets/resizable';
+import '../css/resizable.css';
+import 'jquery-ui/ui/widgets/mouse.js';
 
 import { db, auth } from "../components/firebase";
+
 
 function Live() {
     const history = useHistory();
 
     // Errors
     const [error, setError] = useState("code...");
-    const [initiator, setinitiator] = useState();
+    const [initiator, setinitiator] = useState("");
     const [contributors, setcontributors] = useState({});
 
     // USER DETAIL
@@ -72,16 +77,16 @@ function Live() {
         setjoinroom("");
     }
 
-    // UPDATE CODE comes from <code>
-    function updateCode(e) {
-        setCode(e.target.value);
+    // UPDATE CODE
+    function updateCode(e, value) {
+        setCode(value);
 
-        // ALL DYNAMIC DB UPDATES HAPPENS here
-        socket.emit("codeupdate", activeroom);
+        // ALL DYNAMIC DB UPDATES HAPPENS HERE
         if (activeroom) {
-            db.ref("/joins/" + activeroom + "/code/code").set(e.target.value).catch(error => {
+            db.ref("/joins/" + activeroom + "/code/code").set(value).catch(error => {
                 console.log(error.message);
             })
+            socket.emit("codeupdate", activeroom);
         }
     }
 
@@ -122,16 +127,6 @@ function Live() {
         history.push("/");
     };
 
-    // LOAD CODE
-    const loadCodeOnce = () => {
-        console.log("code loading...");
-        db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
-            if (snap.val()) {
-                setCode(snap.val());
-            }
-        });
-    }
-
     // RUN CODE
     const runCode = () => {
         console.clear();
@@ -144,7 +139,7 @@ function Live() {
         }
     }
 
-    useEffect(() => {
+    useEffect(function () {
         setUserref(localStorage.getItem("userref"));
 
         // INITIALIZE PREVIOUS SESSION
@@ -202,13 +197,16 @@ function Live() {
 
 
     // RUN ONCE ON MOUNTING
-    useEffect(() => {
+    useEffect(function () {
+
+        // Avail active room inside the useeffect;
+        var activeroom = localStorage.getItem('activeroom');
 
         // CLEAR CONSOLE ON LOAD
         setTimeout(() => {
             console.clear();
             console.log("Welcome to JoinCode");
-        }, 500);
+        }, 1000);
 
         // HANDLE JOIN REQUEST
         socket.on("requestaccess", (data) => {
@@ -232,9 +230,9 @@ function Live() {
             localStorage.setItem("codeactive", "on");
             localStorage.setItem("activeroom", data.room);
             localStorage.setItem("status", "joined");
-
             setactiveroom(data.room);
             setCodeactive("on");
+            window.location.reload();
         });
 
         // HANDLE NOSUCHROOM
@@ -242,19 +240,24 @@ function Live() {
             alert("Room does not exist, Create one instead!");
         });
 
-        // CODE UPDATE
+
+        // CODE UPDATE NOTIFY
         socket.on("codeupdate", (code) => {
-            setCode(code);
+            // GET THE CODE FROM DATABASE AND SET IT
+            db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
+                if (snap.val()) {
+                    setCode(snap.val());
+                }
+            });
         });
 
         // UPDATE ONLINE USERS
         socket.on('onlineuserschangenotify', () => {
-            var activeroom = localStorage.getItem('activeroom');
-            setTimeout(() => {
-                db.ref('/joins/' + activeroom + '/contributors/').once('value', (snap) => {
+            db.ref('/joins/' + activeroom + '/contributors/').once('value', (snap) => {
+                if (snap.val()) {
                     setcontributors(snap.val());
-                })
-            }, 3000);
+                }
+            })
         })
 
         // UPDATE USERS ON ANY CHANGE
@@ -267,11 +270,39 @@ function Live() {
             $('.activity_inner').toggleClass('show');
             $('.code').toggleClass('code_height');
         })
-        console.log('refreshing now');
 
-        $(document).ready(() => {
-            loadCodeOnce();
+        $('#resizer').on('mousedown', function (e) {
+            var position = $(this).position();
+            var top = position.top;
+            var left = position.left;
+            console.log(left);
+            console.log($('.activity_space').width());
+        });
+
+        $('.activity_space').resizable({
+            minWidth: 150,
+
+        });
+
+        $('.activity_space').on('resize', function () {
+            let activity_space_width = $(this).width();
+            if (activity_space_width < 300) {
+                console.log('flipped');
+                $('.join_room_input').css('flex-direction', 'column');
+                $('join_inputtext').css('width', '10px !important');
+                $('.joinbutton').css('margin-top', '5px');
+            }
+            else {
+                $('.join_room_input').css('flex-direction', 'row');
+                $('.joinbutton').css('margin-top', '0px');
+            }
         })
+
+
+        // document.getElementsByClassName('.code')[0].addEventListener('click', function () {
+        //     console.log("scrolled");
+        // })
+
     }, []);
 
     return (
@@ -326,41 +357,23 @@ function Live() {
                                 <input
                                     type="text"
                                     value={joinroom}
+                                    placeholder='Enter a room'
                                     onChange={(e) => {
                                         setjoinroom(e.target.value);
                                     }}
                                     className='join_inputtext'
                                 />
                                 <button
-                                    className="btn btn-success button"
-                                    onClick={enterJoin}
-                                    style={{
-                                        fontSize: "12pt",
-                                        margin: "5px",
-                                        width: "100%",
-                                        padding: "5px",
-                                        flex: 1,
-                                        border: "2px solid rgb(100,100,100)",
-                                    }}
-                                >
+                                    className="btn btn-success button joinbutton"
+                                    onClick={enterJoin}>
                                     Join
-                            </button>
+                                </button>
                             </div>
                         </div>
                         <div className="activity">
                             <h4 className="flave_title"> Active JoinCode </h4>
                             {activeroom ? (
-                                <h4
-                                    style={{
-                                        marginBottom: "10px",
-                                        backgroundColor: "green",
-                                        color: "white",
-                                        padding: "5px",
-                                        margin: "0 10px",
-                                        borderRadius: "10px",
-                                        textAlign: "center",
-                                    }}
-                                >
+                                <h4 className='active_joincode'>
                                     {activeroom}
                                 </h4>
                             ) : (
@@ -372,15 +385,15 @@ function Live() {
                                     Object.keys(contributors).map((user) => {
                                         return (
                                             <li key={fakekey++}>
+                                                {(contributors && (contributors[user].status == 'online')) ?
+                                                    (<div className='online_mark'></div>)
+                                                    :
+                                                    (<div className='offline_mark'></div>)
+                                                }
                                                 <h5>
                                                     {user}
                                                     {user == initiator ? "(Lead)" : ""}
                                                 </h5>
-                                                {(contributors && (contributors[user].status == 'online')) ?
-                                                    (<div className='online_mark'></div>)
-                                                    :
-                                                    ("")
-                                                }
                                             </li>
                                         );
                                     })
@@ -396,7 +409,7 @@ function Live() {
                         </div>
 
                         <button
-                            className="btn btn-danger button"
+                            className="btn btn-danger button margin_around"
                             onClick={logOut}
                         >
                             Leave
@@ -404,19 +417,19 @@ function Live() {
                     </div>
                     <div className='codeinteracts'>
                         <button
-                            className="btn btn-success button"
+                            className="btn btn-success button margin_around"
                             onClick={runCode}>
                             Run
                         </button>
 
                         <button
-                            className="btn btn-info button"
+                            className="btn btn-info button margin_around"
                             onClick={() => { setCode(jsbeautify(code)) }}>
-                            Prettify Code
+                            Pretify Code
                         </button>
 
                         <button
-                            className="btn btn-info button"
+                            className="btn btn-secondary button margin_around"
                             style={{
                                 float: 'right',
                                 marginRight: "10px",
@@ -427,7 +440,7 @@ function Live() {
                         </button>
 
                         <button
-                            className="btn btn-primary button"
+                            className="btn btn-primary button margin_around"
                             style={{
                                 float: 'right',
                                 marginRight: "10px"
@@ -439,27 +452,42 @@ function Live() {
 
                     <h5 className='lead joincode_header'> {activeroom} </h5>
 
-                    <textarea className='code'
+                    {/* <textarea className='code'
                         value={code}
-                        onChange={(e) => { updateCode(e) }}>
-                    </textarea>
+                        onChange={(e,) => { updateCode(e) }}>
+                    </textarea> */}
+
+                    <ControlledEditor
+                        className='code'
+                        language="javascript"
+                        options={{
+                            minimap: {
+                                enabled: false,
+                            },
+                            fontSize: '16pt',
+                            folding: false,
+                            scrollbar: {
+                                horizontal: 'hidden',
+                                vertical: 'hidden',
+                            },
+                            hover: {
+                                enabled: false
+                            },
+                            lineDecorationsWidth: '20',
+                            lineNumbers: "on",
+                            mouseWheelZoom: true,
+                            renderIndentGuides: false,
+                            wordWrap: 'on',
+                        }}
+                        value={code}
+                        onChange={(e, value) => { updateCode(e, value) }}
+
+                    />
 
                 </div>
             </div >
         </div >
     );
 }
-
-// HTML TO DATABASE READY
-function htmlToString(streamclass) {
-    let finalcode = "";
-    let codeblocks = document.getElementsByClassName(streamclass);
-    for (let i = 0; i < codeblocks.length; i++) {
-        finalcode = finalcode + " " + codeblocks[i].innerText;
-    }
-    return finalcode;
-}
-
-
 
 export default Live;

@@ -1,15 +1,13 @@
 import React from "react";
 
 function Joincode({ size }) {
-    const j = { color: "yellow", fontSize: size + "pt" };
-    const c = { color: "blue", fontSize: size + "pt" };
+    const j = { color: "yellow", fontSize: size + "pt", fontWeight: '1000', fontFamily: 'Cursive' };
+    const c = { color: "blue", fontSize: size + "pt", fontWeight: '1000', fontFamily: 'Cursive' };
     const brand_text = {
         fontSize: size - 2 + "pt",
-        fontFamily: "Garamond",
-        fontWeight: "bold",
         padding: "0px 10px",
-        borderRadius: "5px",
-        color: "rgb(100, 100, 100)",
+        borderRadius: "2px",
+        color: "black",
         backgroundColor: "rgb(200, 200, 200)",
         width: "100%",
         textAlign: "center",
