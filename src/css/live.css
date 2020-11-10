@@ -30,6 +30,10 @@
     text-align: center;
     margin: 5px;
 }
+.createactivitybutton>button {
+    cursor: cell !important;
+}
+
 /* MODAL */
 .newinstance {
     display: flex;
@@ -46,12 +50,9 @@
 }
 
 .activity_space {
-    flex-direction: row;
     background-color: var(--gray);
-    margin: 2px;
     padding: 1px;
-    border-radius: 2px;
-    border-right: 3px solid var(--white);
+    border-right: 5px solid var(--black);
 }
 
 .activity_inner
@@ -68,19 +69,23 @@
 {
     background-color: var(--green);
     color: var(--white);
-    padding: 5px 10px;
+    padding: 3px 10px;
     margin: 0 10px;
     margin-bottom: 0px;
+    border-radius: 2px;
+    font-size: var(--font_small);
+}
+.user_lists_header
+{
+    margin-top: 50px !important;
 }
 .user_lists {
     text-align: left;
     list-style: none;
     color: var(--white);
-    margin-top: 50px;
     list-style-type: disc;
 }
 .user_lists > li {
-    padding-left: 20px;
     display: flex;
     align-items: center;
 }
@@ -88,8 +93,8 @@
 .online_mark
 {
     margin: 0px 5px;
-    width: 10px;
-    height: 10px;
+    min-width: 10px;
+    min-height: 10px;
     background-color: var(--green_strike);
     border-radius: 100%;
 }
@@ -110,7 +115,7 @@
 }
 .join_inputtext
 {
-    flex: 0.2;
+    flex: 0.8;
     margin: 0px 5px;
     border-radius: 20px;
     font-size: var(--small);
@@ -120,7 +125,7 @@
     width: unset;
 }
 .joinbutton{
-    flex: 0.8;
+    flex: 0.2;
     font-size: 12pt;
     padding: 0px !important;
     border: 2px solid var(--shade);
@@ -133,7 +138,6 @@
     flex-direction: column;
     border-radius: 2px;
     background-color: var(--gray);
-    margin: 2px;
 }
 .live_header {
     flex: 0.05;
@@ -176,12 +180,20 @@
     position: absolute;
     justify-self: center;
     height: 100%;
-    width: 70%;
+    width: 100%;
 }
-/* .monaco-editor
+.monaco-editor
 {
+    margin: 0 !important;
+    margin-right: 0 !important;
     padding-top: 10px;
-} */
+    width: 100% !important;
+    height: 100% !important;
+}
+.monaco-scrollable-element
+{
+    width: 100% !important;
+}
 
 .objectpassive {
     display: none;
@@ -229,6 +241,8 @@
     .activity_space
     {
         margin: 0;
+        border-right: none;
+        width: 100% !important;
     }
     .join_room_input
     {
@@ -245,7 +259,6 @@
     }
     .activity_inner
     {
-        display: none;
         flex: 0;
         margin: 0;
     }
@@ -259,10 +272,6 @@
     }
     .code_space
     {
-        margin: 0
-    }
-    .show
-    {
-        display: block;
+        margin: 0;
     }
 }

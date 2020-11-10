@@ -47,7 +47,7 @@
     display: flex;
     flex-direction: column;
     margin-top: 10px;
-    margin-right: 10px;
+    margin-bottom: 150px;
 }
 .login_container, .signup_container
 {
@@ -78,12 +78,7 @@
     {
         display: none;
     }
-    .home_forms {
-        flex-direction: column;
-        flex: 0;
-        margin: auto;
-        margin-bottom: 200px;
-    }
+
     .form_container
     {
         margin: 0 20px;
@@ -91,6 +86,7 @@
 
     .login_container, .signup_container
     {
+        margin: auto;
         width: 350px;
     }
 }

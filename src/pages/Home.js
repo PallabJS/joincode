@@ -45,13 +45,13 @@ function Home() {
                     <Joincode size={30} />
                     <div className='home_intro'>
                         <p className='home_intro'>
-                            JoinCode is a free platform for programmers that allows coders to develop code snippets for your projects. Develop code pieces for your projects collectively, effectively and confortably.
+                            JoinCode is a free platform for programmers to develop code snippets for your projects. Develop code pieces for your projects collectively, effectively and comfortably.
                         </p>
                         <ul className='home_steps'>
                             <h4 className='flave_title'> JoinCode is just about three steps: </h4>
-                            <li style={{ marginLeft: '5%' }}> Setup the environment </li>
-                            <li style={{ marginLeft: '5%' }}> Write & Update your code </li>
-                            <li style={{ marginLeft: '5%' }}> Finalise and export to your project </li>
+                            <li style={{ marginLeft: '5%' }}> Create a JoinCode </li>
+                            <li style={{ marginLeft: '5%' }}> Develop your code </li>
+                            <li style={{ marginLeft: '5%' }}> Take your code to the project </li>
                         </ul>
                     </div>
                     <div className='home_demo'>

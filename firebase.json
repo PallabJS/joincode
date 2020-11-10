@@ -1,7 +1,6 @@
 {
   "hosting": {
-    "site": "joincode",
-    "public": "public",
+    "public": "build",
     "ignore": [
       "firebase.json",
       "**/.*",

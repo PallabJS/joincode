@@ -8,6 +8,8 @@ import jsbeautify from 'js-beautify';
 import { ControlledEditor } from "@monaco-editor/react";
 
 import "../css/live.css";
+import "../css/brand.css"
+
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import $ from 'jquery';
@@ -198,111 +200,157 @@ function Live() {
 
     // RUN ONCE ON MOUNTING
     useEffect(function () {
+        // Check user state
+        var loggedin = true;
+        let userref = localStorage.getItem('userref');
+        if (userref === "" || userref == undefined || userref == null) {
+            loggedin = false;
+            document.body.innerHTML = `
+                <div style="width: fit-content; min-height: 200px; padding: 20px; margin: 50px auto; border-radius: 5px; border: 2px solid var(--bg)"> 
 
-        // Avail active room inside the useeffect;
-        var activeroom = localStorage.getItem('activeroom');
+                            <div style= "font-size: 20pt;
+                            padding: 0px 10px;
+                            border-radius: 2px;
+                            color: black;
+                            background-color: rgb(200, 200, 200);
+                            width: 100%;
+                            text-align: center;
+                            ">
+                    <code
+                        style= "color: yellow;
+                                font-size: 25pt;
+                                font-weight: 1000;
+                                font-family: 'Cursive';"
+                    >J</code>oin<code
+                        style= "color: blue;
+                                font-size: 25pt;
+                                font-weight: 1000;
+                                font-family: 'Cursive';"
+                    >C</code>ode
+                </div>
 
-        // CLEAR CONSOLE ON LOAD
-        setTimeout(() => {
-            console.clear();
-            console.log("Welcome to JoinCode");
-        }, 1000);
+                    <h1 style="padding: 5px; text-align: center; background-color: "var(--black); color: var(--white) "> Redirecting to Homepage </h1>
+                    <p style="text-align: center; font-size: var(--font_normal)"> Login first to use Join Code. Thanks for being a JoinCoder!  </p>
+                </div>`
 
-        // HANDLE JOIN REQUEST
-        socket.on("requestaccess", (data) => {
-            db.ref("/joins/" + data.room).once("value", (snap) => {
-                if (snap.val().initiator === localStorage.getItem("userref")) {
-                    var access = window.confirm(
-                        data.user + " wants to collaborate to " + data.room
-                    );
-                    var res = {
-                        access: access,
-                        user: data.user,
-                        room: data.room,
-                    };
-                    socket.emit("requestaccess-response", res);
-                }
+            setTimeout(() => {
+                history.push('/');
+                window.location.reload();
+            }, 5000);
+        }
+
+        if (loggedin) {
+
+            // Avail active room inside the useeffect;
+            var activeroom = localStorage.getItem('activeroom');
+
+            // CLEAR CONSOLE ON LOAD
+            setTimeout(() => {
+                console.clear();
+                console.log("Welcome to JoinCode");
+            }, 1000);
+
+            // HANDLE JOIN REQUEST
+            socket.on("requestaccess", (data) => {
+                db.ref("/joins/" + data.room).once("value", (snap) => {
+                    if (snap.val().initiator === localStorage.getItem("userref")) {
+                        var access = window.confirm(
+                            data.user + " wants to collaborate to " + data.room
+                        );
+                        var res = {
+                            access: access,
+                            user: data.user,
+                            room: data.room,
+                        };
+                        socket.emit("requestaccess-response", res);
+                    }
+                });
             });
-        });
 
-        // HANDLE REQUEST APPROVED
-        socket.on("requestapproved", (data) => {
-            localStorage.setItem("codeactive", "on");
-            localStorage.setItem("activeroom", data.room);
-            localStorage.setItem("status", "joined");
-            setactiveroom(data.room);
-            setCodeactive("on");
-            window.location.reload();
-        });
-
-        // HANDLE NOSUCHROOM
-        socket.on("nosuchroom", () => {
-            alert("Room does not exist, Create one instead!");
-        });
-
-
-        // CODE UPDATE NOTIFY
-        socket.on("codeupdate", (code) => {
-            // GET THE CODE FROM DATABASE AND SET IT
-            db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
-                if (snap.val()) {
-                    setCode(snap.val());
-                }
+            // HANDLE REQUEST APPROVED
+            socket.on("requestapproved", (data) => {
+                localStorage.setItem("codeactive", "on");
+                localStorage.setItem("activeroom", data.room);
+                localStorage.setItem("status", "joined");
+                setactiveroom(data.room);
+                setCodeactive("on");
+                window.location.reload();
             });
-        });
 
-        // UPDATE ONLINE USERS
-        socket.on('onlineuserschangenotify', () => {
-            db.ref('/joins/' + activeroom + '/contributors/').once('value', (snap) => {
-                if (snap.val()) {
-                    setcontributors(snap.val());
-                }
+            // HANDLE NOSUCHROOM
+            socket.on("nosuchroom", () => {
+                alert("Room does not exist, Create one instead!");
+            });
+
+
+            // CODE UPDATE NOTIFY
+            socket.on("codeupdate", (code) => {
+                // GET THE CODE FROM DATABASE AND SET IT
+                db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
+                    if (snap.val()) {
+                        setCode(snap.val());
+                    }
+                });
+            });
+
+            // UPDATE ONLINE USERS
+            socket.on('onlineuserschangenotify', () => {
+                db.ref('/joins/' + activeroom + '/contributors/').once('value', (snap) => {
+                    if (snap.val()) {
+                        setcontributors(snap.val());
+                    }
+                })
             })
-        })
 
-        // UPDATE USERS ON ANY CHANGE
-        db.ref('/joins/' + activeroom + '/contributors/').on('value', (snap) => {
-            updateUsers();
-        })
+            // UPDATE USERS ON ANY CHANGE
+            db.ref('/joins/' + activeroom + '/contributors/').on('value', (snap) => {
+                updateUsers();
+            })
 
-        // STATIC CODES FOR CSS
-        document.getElementsByClassName("activity_header")[0].addEventListener('click', () => {
-            $('.activity_inner').toggleClass('show');
-            $('.code').toggleClass('code_height');
-        })
+            // ACTIVITY SPACE DYNAMICS            
+            // activity space width
+            let as_width = $('.activity_space').outerWidth();
 
-        $('#resizer').on('mousedown', function (e) {
-            var position = $(this).position();
-            var top = position.top;
-            var left = position.left;
-            console.log(left);
-            console.log($('.activity_space').width());
-        });
+            // resizable active_space
+            $('.activity_space').resizable({
+                minWidth: 220,
+                handles: 'e',
+                resize: () => {
+                    as_width = $('.activity_space').outerWidth();
+                    toggleInputOrient(as_width);
+                },
+                stop: () => {
+                    as_width = $('.activity_space').outerWidth();
+                    toggleInputOrient(as_width);
+                }
+            });
 
-        $('.activity_space').resizable({
-            minWidth: 150,
-
-        });
-
-        $('.activity_space').on('resize', function () {
-            let activity_space_width = $(this).width();
-            if (activity_space_width < 300) {
-                console.log('flipped');
-                $('.join_room_input').css('flex-direction', 'column');
-                $('join_inputtext').css('width', '10px !important');
-                $('.joinbutton').css('margin-top', '5px');
+            // Maintain the activity_space content on resize
+            function toggleInputOrient(checkWidth) {
+                if (checkWidth < 300) {
+                    $('.join_room_input').css('flex-direction', 'column');
+                    $('join_inputtext').css('width', '10px !important');
+                    $('.joinbutton').css('margin-top', '5px');
+                }
+                else {
+                    $('.join_room_input').css('flex-direction', 'row');
+                    $('.joinbutton').css('margin-top', '0px');
+                }
             }
-            else {
-                $('.join_room_input').css('flex-direction', 'row');
-                $('.joinbutton').css('margin-top', '0px');
+
+            $('.activity_header').on('click', () => {
+                console.log(window.innerWidth);
+                if (window.innerWidth < 900) {
+                    $('.activity_inner').toggle();
+                }
+            });
+
+            window.onresize = () => {
+                if (window.innerWidth > 900) {
+                    $('.activity_inner').show();
+                }
             }
-        })
-
-
-        // document.getElementsByClassName('.code')[0].addEventListener('click', function () {
-        //     console.log("scrolled");
-        // })
-
+        }
     }, []);
 
     return (
@@ -379,8 +427,8 @@ function Live() {
                             ) : (
                                     ""
                                 )}
+                            <h4 className="flave_title"> Developers </h4>
                             <ul className="user_lists">
-                                <h4 className="flave_title"> Developers </h4>
                                 {
                                     Object.keys(contributors).map((user) => {
                                         return (
@@ -477,7 +525,8 @@ function Live() {
                             lineNumbers: "on",
                             mouseWheelZoom: true,
                             renderIndentGuides: false,
-                            wordWrap: 'on',
+                            wordWrap: 'bounded',
+                            automaticLayout: true,
                         }}
                         value={code}
                         onChange={(e, value) => { updateCode(e, value) }}
