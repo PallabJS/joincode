@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import { socket } from "../components/socket";
 
+import firebase from 'firebase';
+
 import Joincode from "../components/Joincode";
 import jsbeautify from 'js-beautify';
 
@@ -14,23 +16,22 @@ import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import $ from 'jquery';
 import 'jquery-ui/ui/core';
+import 'jquery-ui/ui/effect';
 import 'jquery-ui/ui/widgets/resizable';
 import '../css/resizable.css';
 import 'jquery-ui/ui/widgets/mouse.js';
 
 import { db, auth } from "../components/firebase";
 
-
 function Live() {
     const history = useHistory();
 
-    // Errors
-    const [error, setError] = useState("code...");
+    // USERS LIVE
     const [initiator, setinitiator] = useState("");
     const [contributors, setcontributors] = useState({});
 
     // USER DETAIL
-    const [userref, setUserref] = useState();
+    const [username, setusername] = useState("");
 
     // CREATE INSTANCE MODAL
     const [show, setShow] = useState(false);
@@ -39,30 +40,29 @@ function Live() {
     const [newroom, setnewroom] = useState("");
     const [activeroom, setactiveroom] = useState("");
 
+
     // JOIN A JoinCode
     const [joinroom, setjoinroom] = useState("");
 
-    const handleChange = (e) => {
-        setnewroom(e.target.value);
-    };
-
     // Code State
-    var [code, setCode] = useState(" ");
-    var [codeactive, setCodeactive] = useState("off");
+    const [code, setCode] = useState("");
+    const [codeactive, setCodeactive] = useState("off");
+
 
     // CREATE A NEW JOINCODE
-    function createActivity() {
+    function createJoincode() {
         // check if room already exist
         db.ref("/joins/" + newroom).once("value", (snap) => {
             if (!snap.val()) {
+
                 // Create a room
                 db.ref("/joins/" + newroom).set({
-                    initiator: localStorage.getItem("userref"),
-                    code: "",
-                });
-                handleClose();
-                setactiveroom(newroom);
-                setCodeactive("on");
+                    initiator: localStorage.getItem("username"),
+                    code: "//Start writing you codes here",
+                }).then(() => {
+                    handleClose();
+                    enterJoin();
+                })
             } else {
                 alert("Room already exists");
             }
@@ -72,10 +72,13 @@ function Live() {
     // ENTER A JOINCODE
     function enterJoin() {
         var data = {
-            user: userref,
+            userid: localStorage.getItem('uid'),
+            username: username,
             room: joinroom,
         };
         socket.emit("joinroom", data);
+
+        setnewroom("");
         setjoinroom("");
     }
 
@@ -84,17 +87,32 @@ function Live() {
         setCode(value);
 
         // ALL DYNAMIC DB UPDATES HAPPENS HERE
-        if (activeroom) {
-            db.ref("/joins/" + activeroom + "/code/code").set(value).catch(error => {
-                console.log(error.message);
+        console.log("updating code for : ", activeroom);
+        db.ref("/joins/" + activeroom + "/code/code").set(value)
+            .catch(error => {
+                console.log("Server error please reresh the page");
             })
-            socket.emit("codeupdate", activeroom);
-        }
     }
 
     // SAVE THE CODE
     function saveCode() {
-        db.ref('/joins/' + activeroom + '/code/').child('save').set(code);
+        db.ref('/joins/' + activeroom + '/code/').child('save').set(code, () => {
+            indicateSave();
+        });
+    }
+
+    // Save indication
+    function indicateSave() {
+        setTimeout(() => {
+            $('#savebutton').animate({
+                backgroundColor: 'rgb(20, 230, 20)',
+            }, 100);
+        }, 0);
+        setTimeout(() => {
+            $('#savebutton').animate({
+                backgroundColor: 'rgb(20, 130, 239)',
+            }, 100);
+        }, 300);
     }
 
     // LOAD LAST SAVED CODE
@@ -111,22 +129,23 @@ function Live() {
                 setinitiator(snap.val());
             }
         });
-        db.ref("/joins/" + activeroom + "/contributors/").once("value",
-            (snap) => {
-                if (snap.val()) {
-                    setcontributors(snap.val());
-                }
+        db.ref("/joins/" + activeroom + "/contributors/").once("value", (snap) => {
+            if (snap.val()) {
+                setcontributors(snap.val());
             }
-        );
+        });
     }
 
     // LOG OUT
     const logOut = () => {
-        auth.signOut();
-        db.ref('/joins/' + activeroom + '/contributors/' + userref).child('status').set('offline');
-        socket.emit('leavenotice', activeroom);
-        localStorage.clear();
-        history.push("/");
+        console.log("room: ", activeroom);
+        auth.signOut().then(() => {
+            db.ref('/joins/' + activeroom + '/contributors/' + username).child('status').set('offline');
+            localStorage.removeItem('uid');
+            localStorage.removeItem('username');
+            localStorage.removeItem('email');
+            history.push("/");
+        })
     };
 
     // RUN CODE
@@ -141,217 +160,222 @@ function Live() {
         }
     }
 
+    // Maintain the activity_space content on resize
+    function toggleInputOrient(checkWidth) {
+        if (checkWidth < 300) {
+            $('.join_room_input').css('flex-direction', 'column');
+            $('join_inputtext').css('width', '10px !important');
+            $('.joinbutton').css('margin-top', '5px');
+        }
+        else {
+            $('.join_room_input').css('flex-direction', 'row');
+            $('.joinbutton').css('margin-top', '0px');
+        }
+    }
+
+    //////////////////////////////      ACTIVE ROOM USEEFFECT     ///////////////////////////////////
     useEffect(function () {
-        setUserref(localStorage.getItem("userref"));
+        setusername(localStorage.getItem("username"));
 
         // INITIALIZE PREVIOUS SESSION
-        var active = localStorage.getItem("codeactive");
-        var room = localStorage.getItem("activeroom");
+        let active = localStorage.getItem("codeactive");
+        let room = localStorage.getItem("activeroom");
+
         // Load the session and live coding
         setCodeactive(active);
         setactiveroom(room);
-
-        // Once and whenever someone gets into collaboration
-        if (activeroom !== "" && userref !== "") {
-            socket.emit("onlinestatus", { user: userref, room: activeroom });
-        }
 
         if (activeroom) {
             // USERS UPDATE
             updateUsers();
 
-            // Enforce fast refresh
+            // Keep joined on refresh
             socket.emit("refresh-catchup", {
-                user: localStorage.getItem("userref"),
+                userid: localStorage.getItem("uid"),
+                username: localStorage.getItem("username"),
                 room: localStorage.getItem("activeroom"),
                 status: localStorage.getItem("status"),
             });
-        }
 
-        // DATABASE EVENTS
-        // load code from database
-        db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
-            if (snap.val()) {
-                setCode(snap.val());
-            }
-        });
-
-        // UPDATE USERS COLLABORATIONS ON NEW JOIN
-        db.ref("/joins/" + activeroom + "/contributors/").on(
-            "child_added",
-            (snap) => {
-                setcontributors(snap.val());
-            }
-        );
-        // UPDATE USERS COLLABORATIONS ON LEAVE
-        db.ref("/joins/" + activeroom + "/contributors/").on(
-            "child_removed",
-            (snap) => {
+            // Synchronize code with the database
+            db.ref("/joins/" + activeroom + "/code/code").on("value", (snap) => {
                 if (snap.val()) {
-                    setcontributors(snap.val());
+                    setCode(snap.val());
                 }
-            }
-        );
-
-    }, [activeroom]);
-
-    let fakekey = 0;
-
-
-    // RUN ONCE ON MOUNTING
-    useEffect(function () {
-        // Check user state
-        var loggedin = true;
-        let userref = localStorage.getItem('userref');
-        if (userref === "" || userref == undefined || userref == null) {
-            loggedin = false;
-            document.body.innerHTML = `
-                <div style="width: fit-content; min-height: 200px; padding: 20px; margin: 50px auto; border-radius: 5px; border: 2px solid var(--bg)"> 
-
-                            <div style= "font-size: 20pt;
-                            padding: 0px 10px;
-                            border-radius: 2px;
-                            color: black;
-                            background-color: rgb(200, 200, 200);
-                            width: 100%;
-                            text-align: center;
-                            ">
-                    <code
-                        style= "color: yellow;
-                                font-size: 25pt;
-                                font-weight: 1000;
-                                font-family: 'Cursive';"
-                    >J</code>oin<code
-                        style= "color: blue;
-                                font-size: 25pt;
-                                font-weight: 1000;
-                                font-family: 'Cursive';"
-                    >C</code>ode
-                </div>
-
-                    <h1 style="padding: 5px; text-align: center; background-color: "var(--black); color: var(--white) "> Redirecting to Homepage </h1>
-                    <p style="text-align: center; font-size: var(--font_normal)"> Login first to use Join Code. Thanks for being a JoinCoder!  </p>
-                </div>`
-
-            setTimeout(() => {
-                history.push('/');
-                window.location.reload();
-            }, 5000);
-        }
-
-        if (loggedin) {
-
-            // Avail active room inside the useeffect;
-            var activeroom = localStorage.getItem('activeroom');
-
-            // CLEAR CONSOLE ON LOAD
-            setTimeout(() => {
-                console.clear();
-                console.log("Welcome to JoinCode");
-            }, 1000);
-
-            // HANDLE JOIN REQUEST
-            socket.on("requestaccess", (data) => {
-                db.ref("/joins/" + data.room).once("value", (snap) => {
-                    if (snap.val().initiator === localStorage.getItem("userref")) {
-                        var access = window.confirm(
-                            data.user + " wants to collaborate to " + data.room
-                        );
-                        var res = {
-                            access: access,
-                            user: data.user,
-                            room: data.room,
-                        };
-                        socket.emit("requestaccess-response", res);
-                    }
-                });
             });
-
-            // HANDLE REQUEST APPROVED
-            socket.on("requestapproved", (data) => {
-                localStorage.setItem("codeactive", "on");
-                localStorage.setItem("activeroom", data.room);
-                localStorage.setItem("status", "joined");
-                setactiveroom(data.room);
-                setCodeactive("on");
-                window.location.reload();
-            });
-
-            // HANDLE NOSUCHROOM
-            socket.on("nosuchroom", () => {
-                alert("Room does not exist, Create one instead!");
-            });
-
-
-            // CODE UPDATE NOTIFY
-            socket.on("codeupdate", (code) => {
-                // GET THE CODE FROM DATABASE AND SET IT
-                db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
-                    if (snap.val()) {
-                        setCode(snap.val());
-                    }
-                });
-            });
-
-            // UPDATE ONLINE USERS
-            socket.on('onlineuserschangenotify', () => {
-                db.ref('/joins/' + activeroom + '/contributors/').once('value', (snap) => {
-                    if (snap.val()) {
-                        setcontributors(snap.val());
-                    }
-                })
-            })
 
             // UPDATE USERS ON ANY CHANGE
             db.ref('/joins/' + activeroom + '/contributors/').on('value', (snap) => {
                 updateUsers();
             })
 
-            // ACTIVITY SPACE DYNAMICS            
-            // activity space width
-            let as_width = $('.activity_space').outerWidth();
-
-            // resizable active_space
-            $('.activity_space').resizable({
-                minWidth: 220,
-                handles: 'e',
-                resize: () => {
-                    as_width = $('.activity_space').outerWidth();
-                    toggleInputOrient(as_width);
-                },
-                stop: () => {
-                    as_width = $('.activity_space').outerWidth();
-                    toggleInputOrient(as_width);
-                }
-            });
-
-            // Maintain the activity_space content on resize
-            function toggleInputOrient(checkWidth) {
-                if (checkWidth < 300) {
-                    $('.join_room_input').css('flex-direction', 'column');
-                    $('join_inputtext').css('width', '10px !important');
-                    $('.joinbutton').css('margin-top', '5px');
-                }
-                else {
-                    $('.join_room_input').css('flex-direction', 'row');
-                    $('.joinbutton').css('margin-top', '0px');
+            // UPDATE USERS COLLABORATIONS ON NEW JOIN
+            db.ref("/joins/" + activeroom + "/contributors/").on("child_added", (snap) => {
+                setcontributors(snap.val());
+            }
+            );
+            // UPDATE USERS COLLABORATIONS ON LEAVE
+            db.ref("/joins/" + activeroom + "/contributors/").on("child_removed", (snap) => {
+                if (snap.val()) {
+                    setcontributors(snap.val());
                 }
             }
+            );
 
-            $('.activity_header').on('click', () => {
-                console.log(window.innerWidth);
-                if (window.innerWidth < 900) {
-                    $('.activity_inner').toggle();
+            // Update Online status of contributors
+            db.ref('/joins/' + activeroom + '/contributors/').on('value', (snap) => {
+                if (snap.val()) {
+                    setcontributors(snap.val());
+                }
+            })
+
+            // load code from database
+            db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
+                if (snap.val()) {
+                    setCode(snap.val());
                 }
             });
 
-            window.onresize = () => {
-                if (window.innerWidth > 900) {
-                    $('.activity_inner').show();
+            // Online status
+            db.ref("/joins/" + activeroom + "/contributors/" + localStorage.getItem('username')).child('status').set('online');
+        }
+
+        return function () {
+            db.ref("/joins/" + activeroom + "/code/").child('code').off();
+        }
+    }, [activeroom]);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    let fakekey = 0;
+
+
+    // RUN ONCE ON MOUNT
+    useEffect(function () {
+
+        // localstorage error
+        if (localStorage.getItem('uid') == false) {
+            logOut();
+        }
+        // // Check user state
+        // firebase.auth().onAuthStateChanged(user => {
+        //     if (!user) {
+        //         document.body.innerHTML = `
+        //         <div style="width: fit-content; min-height: 200px; padding: 20px; margin: 50px auto; border-radius: 5px; border: 2px solid var(--bg)"> 
+
+        //                     <div style= "font-size: 20pt;
+        //                     padding: 0px 10px;
+        //                     border-radius: 2px;
+        //                     color: black;
+        //                     background-color: rgb(200, 200, 200);
+        //                     width: 100%;
+        //                     text-align: center;
+        //                     ">
+        //             <code
+        //                 style= "color: yellow;
+        //                         font-size: 25pt;
+        //                         font-weight: 1000;
+        //                         font-family: 'Cursive';"
+        //             >J</code>oin<code
+        //                 style= "color: blue;
+        //                         font-size: 25pt;
+        //                         font-weight: 1000;
+        //                         font-family: 'Cursive';"
+        //             >C</code>ode
+        //         </div>
+
+        //             <h1 style="padding: 5px; text-align: center; background-color: "var(--black); color: var(--white) "> Redirecting to Homepage </h1>
+        //             <p style="text-align: center; font-size: var(--font_normal)"> Login to use Join Code. Thanks for being a JoinCoder!  </p>
+        //         </div>`
+
+        //         setTimeout(() => {
+        //             history.push('/');
+        //             window.location.reload();
+        //         }, 1);
+        //     }
+        // })
+
+        // CLEAR CONSOLE ON LOAD
+        setTimeout(() => {
+            console.clear();
+            console.log("Welcome to JoinCode");
+        }, 500);
+
+        // HANDLE JOIN REQUEST
+        socket.on("requestaccess", (data) => {
+            db.ref("/joins/" + data.room).once("value", (snap) => {
+                if (snap.val().initiator === localStorage.getItem("username")) {
+                    let access = window.confirm(
+                        data.username + " wants to collaborate to " + data.room
+                    );
+                    data.access = access;
+                    socket.emit("requestaccess-response", data);
                 }
+            });
+        });
+
+        // HANDLE REQUEST APPROVED
+        socket.on("requestapproved", (data) => {
+            localStorage.setItem("codeactive", "on");
+            localStorage.setItem("activeroom", data.room);
+            localStorage.setItem("status", "joined");
+            setactiveroom(data.room);
+            setCodeactive("on");
+            window.location.reload();
+        });
+
+        // HANDLE NOSUCHROOM
+        socket.on("nosuchroom", () => {
+            alert("Room does not exist, Create one instead!");
+        });
+
+
+        // ACTIVITY SPACE DYNAMICS            
+        // activity space width
+        let as_width = $('.activity_space').outerWidth();
+
+        // resizable active_space
+        $('.activity_space').resizable({
+            minWidth: 220,
+            handles: 'e',
+            resize: () => {
+                as_width = $('.activity_space').outerWidth();
+                toggleInputOrient(as_width);
+            },
+            stop: () => {
+                as_width = $('.activity_space').outerWidth();
+                toggleInputOrient(as_width);
+            }
+        });
+
+        $('.activity_header').on('click', () => {
+            if (window.innerWidth < 900) {
+                $('.activity_inner').toggle();
+            }
+        });
+
+        window.onresize = () => {
+            if (window.innerWidth > 900) {
+                $('.activity_inner').show();
             }
         }
     }, []);
+
+
+    useEffect(() => {
+        // CTRL+S save
+        document.getElementsByClassName('code')[0].addEventListener('keydown', function (e) {
+            if (e.ctrlKey && e.key == 's') {
+                e.preventDefault();
+                saveCode();
+            }
+        })
+        return function () {
+            try {
+                document.getElementsByClassName('code')[0].removeEventListener('keydown', () => { });
+            } catch (e) { }
+        }
+    }, [code]);
 
     return (
         <div className="live">
@@ -370,9 +394,9 @@ function Live() {
                             placeholder="eg. mypersonal-12"
                             value={newroom}
                             onChange={(e) => {
-                                handleChange(e);
-                            }}
-                        />
+                                setnewroom(e.target.value);
+                                setjoinroom(e.target.value);
+                            }} />
                     </div>
                 </Modal.Body>
 
@@ -380,7 +404,7 @@ function Live() {
                     <Button variant="secondary" onClick={handleClose}>
                         Close
                     </Button>
-                    <Button variant="primary" onClick={createActivity}>
+                    <Button variant="primary" onClick={createJoincode}>
                         Create
                     </Button>
                 </Modal.Footer>
@@ -439,8 +463,8 @@ function Live() {
                                                     (<div className='offline_mark'></div>)
                                                 }
                                                 <h5>
-                                                    {user}
-                                                    {user == initiator ? "(Lead)" : ""}
+                                                    {contributors ? user : ""}
+                                                    {user == initiator ? " (Lead)" : ""}
                                                 </h5>
                                             </li>
                                         );
@@ -477,6 +501,7 @@ function Live() {
                         </button>
 
                         <button
+                            id='loadbutton'
                             className="btn btn-secondary button margin_around"
                             style={{
                                 float: 'right',
@@ -488,6 +513,7 @@ function Live() {
                         </button>
 
                         <button
+                            id='savebutton'
                             className="btn btn-primary button margin_around"
                             style={{
                                 float: 'right',
@@ -530,7 +556,6 @@ function Live() {
                         }}
                         value={code}
                         onChange={(e, value) => { updateCode(e, value) }}
-
                     />
 
                 </div>

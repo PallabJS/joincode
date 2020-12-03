@@ -83,6 +83,7 @@ a {
     font-size: 12pt;
     padding: 0 20px !important;
     border-radius: 2px;
+    border: none !important;
 }
 .flave_button {
     color: black;
