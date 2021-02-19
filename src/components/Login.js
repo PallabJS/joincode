@@ -3,13 +3,30 @@ import { useHistory } from 'react-router-dom';
 
 // Firebase functions
 import firebase from 'firebase';
-import DatabaseFunctions from './db';
 import { db, auth } from './firebase';
 
-function Login() {
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@material-ui/core';
 
-    const dbfns = new DatabaseFunctions();
+import { makeStyles } from '@material-ui/core'
 
+const useStyles = makeStyles((theme) => ({
+    root: {
+        '& .MuiTextField-root': {
+            margin: theme.spacing(1),
+        }
+    },
+    modal: {
+        backgroundColor: 'rgba(100,100,100,0.5)',
+    }
+
+}))
+
+function Login(props) {
+
+
+    const { showmodal, setShowmodal } = props
+
+    const styles = useStyles()
 
     // Login info
     const [loginemail, setloginemail] = useState('');
@@ -33,6 +50,13 @@ function Login() {
         }
         setError('');
     }
+
+    // Handle modal
+    function handleClose() {
+        setShowmodal(false)
+    }
+
+
 
     // Validate login input data
     function validateEmail() {
@@ -74,56 +98,47 @@ function Login() {
     }, [ready]);
 
     return (
-        <div className='login_container'>
-            <h5
-                className="flave_header3"
-                style={{
-                    cursor: 'pointer'
-                }}
-                onClick={() => { setShow(!show) }}>
-                Login to your account
-            </h5>
-
-            {show ?
-                (
-                    <form action="" className="flave_form">
-                        <div className="flave_inputgroup">
-                            <label htmlFor=""> Email </label>
-                            <input
-                                name='loginemail'
-                                type="text"
-                                className="flave_forminput"
+        <div className={'login_container '}>
+            <Dialog className={styles.modal} open={showmodal} onClose={handleClose} maxWidth='xs'>
+                <DialogTitle id="form-dialog-title"> Log into your account </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        <div className={styles.root}>
+                            <TextField
+                                type='text'
+                                variant='outlined'
+                                size='small'
+                                label='Email address'
                                 value={loginemail}
+                                fullWidth='on'
                                 onChange={(e) => { updateInput('loginemail', e) }}
                             />
-                        </div>
-                        <div className="flave_inputgroup">
-                            <label htmlFor=""> Password </label>
-                            <input
-                                name='loginpassword'
+                            <TextField
                                 type="password"
-                                className="flave_forminput"
+                                variant='outlined'
+                                size='small'
+                                label='Password'
                                 value={loginpassword}
+                                fullWidth='on'
                                 onChange={(e) => { updateInput('loginpassword', e) }}
                             />
                         </div>
-                        <div className="flave_inputgroup" style={{ justifyContent: 'flex-end' }}>
-                            <h6 className='error_display'>
-                                {error}
-                            </h6>
-                            <input
-                                type="button"
-                                className=" flave_button action_button"
-                                value="Login"
-                                onClick={login}
-                            />
-                        </div>
-                    </form>
-                )
-                :
-                ("")
-            }
-        </div>
+                    </DialogContentText>
+                    <Button
+                        value="Login"
+                        onClick={login}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} variant='outlined' color="primary">
+                        Back to home
+                    </Button>
+                    <Button onClick={handleClose} variant='outlined' color="primary">
+                        Login
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div >
     )
 }
 

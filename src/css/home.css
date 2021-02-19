@@ -1,13 +1,13 @@
 .home_header_container {
     display: flex;
     flex-direction: row;
-    justify-content: flex-start;
+    justify-content: center;
     padding: 10px 10px;
     background-color: rgb(50, 50, 50);
-    min-height: 100vh;
+    height: 100vh;
 }
 .home_header {
-    flex: 0.75;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -24,17 +24,24 @@
 .home_demo {
     display: flex;
     flex-direction: row;
-    /* margin-top: 20px; */
+    justify-content: center;
 }
 #demo1,
 #demo2,
 #demo3 {
-    flex: 1;
-    margin: 10px;
-    padding: 5px;
-    border-radius: 5px;
+    flex: 0.25;
+    margin: 30px;
+    padding: 2px;
+    border-radius: 2px;
     text-align: center;
     background-color: gray;
+}
+.home_bottom_bar {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 40px;
+    background-color: white;
 }
 
 .home_steps {
@@ -49,8 +56,8 @@
     margin-top: 10px;
     margin-bottom: 150px;
 }
-.login_container, .signup_container
-{
+.login_container,
+.signup_container {
     display: flex;
     position: relative;
     flex-direction: column;
@@ -68,24 +75,21 @@
     .home_header_container {
         flex-direction: column;
     }
-    .home_header
-    {
+    .home_header {
         margin: 0;
         padding: 0;
     }
 
-    .home_demo
-    {
+    .home_demo {
         display: none;
     }
 
-    .form_container
-    {
+    .form_container {
         margin: 0 20px;
     }
 
-    .login_container, .signup_container
-    {
+    .login_container,
+    .signup_container {
         margin: auto;
         width: 350px;
     }

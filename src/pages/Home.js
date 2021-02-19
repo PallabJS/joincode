@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom';
 
 import firebase from 'firebase';
-import { auth, db } from '../components/firebase';
+import { Button } from '@material-ui/core'
 
 import 'bootstrap/dist/css/bootstrap.css';
 import Images from 'react-bootstrap/Image';
 
 import '../css/home.css'
+import '../css/flave.css'
+
 import Signup from '../components/Signup';
 import Login from '../components/Login';
 import Joincode from '../components/Joincode';
@@ -16,10 +18,27 @@ import step1 from '../images/step1.png';
 import step2 from '../images/step2.png';
 import step3 from '../images/step3.png';
 
+
 function Home() {
 
     // HISTORY
     let history = useHistory();
+
+    // Modal state
+    let [modal, setModal] = useState("")
+    let [showmodal, setShowmodal] = useState(false)
+
+
+    function handleModal(type) {
+        if (type === 'login') {
+            setShowmodal(true)
+            setModal(<Login showmodal={true} setShowmodal={setShowmodal} />)
+        }
+        if (type === 'signup') {
+            setShowmodal(true)
+            setModal(<Signup showmodal={true} setShowmodal={setShowmodal} />)
+        }
+    }
 
     console.log(firebase.auth().currentUser);
     // Redirect on login
@@ -38,6 +57,7 @@ function Home() {
 
     return (
         <div id='home'>
+
             <div className='home_header_container'>
                 <div className='home_header'>
                     <Joincode size={30} />
@@ -45,40 +65,36 @@ function Home() {
                         <p className='home_intro'>
                             JoinCode is a free platform for programmers to develop code snippets for your projects. Develop code pieces for your projects collectively, effectively and comfortably.
                         </p>
-                        <ul className='home_steps'>
-                            <h4 className='flave_title'> JoinCode is just about three steps: </h4>
-                            <li style={{ marginLeft: '5%' }}> Create a JoinCode </li>
-                            <li style={{ marginLeft: '5%' }}> Develop your code </li>
-                            <li style={{ marginLeft: '5%' }}> Take your code to the project </li>
-                        </ul>
                     </div>
                     <div className='home_demo'>
                         <div id='demo1'>
-                            <h3> Setup </h3>
+                            <h5> Setup </h5>
+                            <p style={{ marginLeft: '5%' }}> First, create a JoinCode </p>
                             <Images src={step1} fluid />
                         </div>
                         <div id='demo2'>
-                            <h3> Develop </h3>
+                            <h5> Develop </h5>
+                            <p style={{ marginLeft: '5%' }}> Second, develop code with your team </p>
                             <Images src={step2} fluid />
                         </div>
+
+
                         <div id='demo2'>
-                            <h3> Export </h3>
+                            <h5> Export </h5>
+                            <p style={{ marginLeft: '5%' }}> Download the file and merge it to you project </p>
                             <Images src={step3} fluid />
                         </div>
                     </div>
                 </div>
-
-                <div className='home_forms'>
-                    <div className='form_container'>
-                        <Login />
-                    </div>
-                    <br />
-                    <div className='form_container'>
-                        <Signup />
-                    </div>
-                </div>
             </div>
-        </div>
+            <div className='home_bottom_bar'>
+                <Button className='button' onClick={() => handleModal('login')} variant='contained' color='primary'> Login </Button>
+                <Button className='button' onClick={() => handleModal('signup')} variant='contained' color='primary'> Signup </Button>
+            </div>
+
+            { showmodal ? modal : ""}
+
+        </div >
     )
 }
 

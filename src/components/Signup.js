@@ -4,8 +4,28 @@ import { useHistory } from 'react-router-dom';
 import firebase from 'firebase';
 import DatabaseFunctions from './db';
 import { db, auth } from './firebase';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@material-ui/core';
 
-function Signup() {
+import { makeStyles } from '@material-ui/core'
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        '& .MuiTextField-root': {
+            margin: theme.spacing(1),
+        }
+    },
+    modal: {
+        backgroundColor: 'rgba(100,100,100,0.5)',
+    }
+
+}))
+
+
+function Signup(props) {
+
+    const { showmodal, setShowmodal } = props
+
+    const styles = useStyles()
 
     const history = useHistory();
 
@@ -21,6 +41,13 @@ function Signup() {
     const [error, setError] = useState('');
     const [show, setShow] = useState(false);
     const [ready, setready] = useState(false);
+
+
+    // Handle modal
+    function handleClose() {
+        setShowmodal(false)
+    }
+
 
     // Update Signup Inputs
     const updateInput = (name, e) => {
@@ -96,61 +123,56 @@ function Signup() {
 
     return (
         <div className='signup_container'>
-            <h5
-                className="flave_header3"
-                style={{
-                    cursor: 'pointer'
-                }}
-                onClick={() => { setShow(!show) }}
-            > Sign Up for a new account </h5>
-            {show
-                ?
-                (<form action="" className="flave_form">
-                    <div className="flave_inputgroup">
-                        <label htmlFor=""> Username </label>
-                        <input
-                            name='username'
-                            type="text"
-                            className="flave_forminput"
-                            value={username}
-                            onChange={(e) => { updateInput('username', e) }}
-                        />
-                    </div>
-                    <div className="flave_inputgroup">
-                        <label htmlFor=""> Email </label>
-                        <input
-                            name='signupemail'
-                            type="email"
-                            className="flave_forminput"
-                            value={signupemail}
-                            onChange={(e) => { updateInput('signupemail', e) }}
-                        />
-                    </div>
-                    <div className="flave_inputgroup">
-                        <label htmlFor=""> Password </label>
-                        <input
-                            name='signuppassword'
-                            type="password"
-                            className="flave_forminput"
-                            value={signuppassword}
-                            onChange={(e) => { updateInput('signuppassword', e) }}
-                        />
-                    </div>
-                    <div className="flave_inputgroup" style={{ justifyContent: 'flex-end' }} >
-                        <h6 className='error_display'>
-                            {error}
-                        </h6>
-                        <input
-                            type="button"
-                            className=" flave_button action_button"
-                            value="Signup"
-                            onClick={signup}
-                        />
-                    </div>
-                </form>)
-                :
-                ("")
-            }
+            <Dialog className={styles.modal} open={showmodal} onClose={handleClose} maxWidth='xs'>
+                <DialogTitle id="form-dialog-title"> Signup for a new account </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        <div className={styles.root}>
+                            <TextField
+                                type='text'
+                                variant='outlined'
+                                size='small'
+                                label='Username'
+                                value={username}
+                                fullWidth='on'
+                                onChange={(e) => { updateInput('username', e) }}
+                            />
+                            <TextField
+                                type='text'
+                                variant='outlined'
+                                size='small'
+                                label='Password'
+                                value={signupemail}
+                                fullWidth='on'
+                                onChange={(e) => { updateInput('signupemail', e) }}
+                            />
+                            <TextField
+                                type='text'
+                                variant='outlined'
+                                size='small'
+                                label='Email address'
+                                value={signuppassword}
+                                fullWidth='on'
+                                onChange={(e) => { updateInput('signuppassword', e) }}
+                            />
+                        </div>
+                    </DialogContentText>
+                    <Button
+                        value="Login"
+                        onClick={signup}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} variant='outlined' color="primary">
+                        Back to home
+                    </Button>
+                    <Button onClick={signup} variant='outlined' color='primary'>
+                        Signup
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+
         </div >
     )
 }

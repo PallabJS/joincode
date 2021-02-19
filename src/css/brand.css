@@ -1,5 +1,4 @@
-:root
-{
+:root {
     /* COLORS */
     --bg: rgb(68, 153, 187);
     --black: rgb(50, 50, 50);
@@ -11,7 +10,7 @@
     --blue: rgb(20, 130, 239);
     --green_strike: rgb(20, 230, 20);
     --highlight: rgb(248, 248, 10);
-    
+
     /* FONT STYLES */
     --font_small: 12pt;
     --font_medium: 14pt;
@@ -22,26 +21,25 @@
     --font_massive: 40pt;
 }
 
-
 /* JOINCODE LOGO HEADER */
-.j_title{
+.j_title {
     color: yellow;
-    font-size: var(--font_normal);
+    font-size: var(--font_big);
     font-weight: 1000;
-    font-family: 'Cursive';
+    font-family: "Cursive";
 }
-.c_title{
+.c_title {
     color: blue;
-    font-size: var(--font_normal);
+    font-size: var(--font_big);
     font-weight: 1000;
-    font-family: 'Cursive';
-} 
-.brand_text{
-    font-size: var(--font_medium);
-    padding: 0px 10px;
+    font-family: "Cursive";
+}
+.brand_text {
+    font-size: var(--font_large);
+    padding: 5px 10px;
     border-radius: 2px;
     color: black;
     background-color: rgb(200, 200, 200);
     width: 100%;
     text-align: center;
-};
+}
