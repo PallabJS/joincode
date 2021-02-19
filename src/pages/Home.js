@@ -67,6 +67,7 @@ function Home() {
                         </p>
                     </div>
                     <div className='home_demo'>
+
                         <div id='demo1'>
                             <h5> Setup </h5>
                             <p style={{ marginLeft: '5%' }}> First, create a JoinCode </p>
