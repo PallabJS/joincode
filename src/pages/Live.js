@@ -3,23 +3,22 @@ import { useHistory } from "react-router-dom";
 import { socket } from "../components/socket";
 
 import Joincode from "../components/Joincode";
-import jsbeautify from 'js-beautify';
+import jsbeautify from "js-beautify";
 
 import { ControlledEditor } from "@monaco-editor/react";
 
 import "../css/live.css";
-import "../css/brand.css"
+import "../css/brand.css";
 
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import $ from 'jquery';
-import 'jquery-ui/ui/core';
-import 'jquery-ui/ui/widgets/resizable';
-import '../css/resizable.css';
-import 'jquery-ui/ui/widgets/mouse.js';
+import $ from "jquery";
+import "jquery-ui/ui/core";
+import "jquery-ui/ui/widgets/resizable";
+import "../css/resizable.css";
+import "jquery-ui/ui/widgets/mouse.js";
 
 import { db, auth } from "../components/firebase";
-
 
 function Live() {
     const history = useHistory();
@@ -85,23 +84,29 @@ function Live() {
 
         // ALL DYNAMIC DB UPDATES HAPPENS HERE
         if (activeroom) {
-            db.ref("/joins/" + activeroom + "/code/code").set(value).catch(error => {
-                console.log(error.message);
-            })
+            db.ref("/joins/" + activeroom + "/code/code")
+                .set(value)
+                .catch((error) => {
+                    console.log(error.message);
+                });
             socket.emit("codeupdate", activeroom);
         }
     }
 
     // SAVE THE CODE
     function saveCode() {
-        db.ref('/joins/' + activeroom + '/code/').child('save').set(code);
+        db.ref("/joins/" + activeroom + "/code/")
+            .child("save")
+            .set(code);
     }
 
     // LOAD LAST SAVED CODE
     function loadSavedCode() {
-        db.ref('/joins/' + activeroom + '/code/').child('save').once('value', code => {
-            setCode(code.val());
-        })
+        db.ref("/joins/" + activeroom + "/code/")
+            .child("save")
+            .once("value", (code) => {
+                setCode(code.val());
+            });
     }
 
     // UPDATE USERS LIST
@@ -111,20 +116,20 @@ function Live() {
                 setinitiator(snap.val());
             }
         });
-        db.ref("/joins/" + activeroom + "/contributors/").once("value",
-            (snap) => {
-                if (snap.val()) {
-                    setcontributors(snap.val());
-                }
+        db.ref("/joins/" + activeroom + "/contributors/").once("value", (snap) => {
+            if (snap.val()) {
+                setcontributors(snap.val());
             }
-        );
+        });
     }
 
     // LOG OUT
     const logOut = () => {
         auth.signOut();
-        db.ref('/joins/' + activeroom + '/contributors/' + userref).child('status').set('offline');
-        socket.emit('leavenotice', activeroom);
+        db.ref("/joins/" + activeroom + "/contributors/" + userref)
+            .child("status")
+            .set("offline");
+        socket.emit("leavenotice", activeroom);
         localStorage.clear();
         history.push("/");
     };
@@ -135,74 +140,68 @@ function Live() {
         console.log("Evaluating");
         try {
             eval(code);
-        }
-        catch (e) {
+        } catch (e) {
             console.log(e);
         }
-    }
+    };
 
-    useEffect(function () {
-        setUserref(localStorage.getItem("userref"));
+    useEffect(
+        function () {
+            setUserref(localStorage.getItem("userref"));
 
-        // INITIALIZE PREVIOUS SESSION
-        var active = localStorage.getItem("codeactive");
-        var room = localStorage.getItem("activeroom");
-        // Load the session and live coding
-        setCodeactive(active);
-        setactiveroom(room);
+            // INITIALIZE PREVIOUS SESSION
+            var active = localStorage.getItem("codeactive");
+            var room = localStorage.getItem("activeroom");
+            // Load the session and live coding
+            setCodeactive(active);
+            setactiveroom(room);
 
-        // Once and whenever someone gets into collaboration
-        if (activeroom !== "" && userref !== "") {
-            socket.emit("onlinestatus", { user: userref, room: activeroom });
-        }
+            // Once and whenever someone gets into collaboration
+            if (activeroom !== "" && userref !== "") {
+                socket.emit("onlinestatus", { user: userref, room: activeroom });
+            }
 
-        if (activeroom) {
-            // USERS UPDATE
-            updateUsers();
+            if (activeroom) {
+                // USERS UPDATE
+                updateUsers();
 
-            // Enforce fast refresh
-            socket.emit("refresh-catchup", {
-                user: localStorage.getItem("userref"),
-                room: localStorage.getItem("activeroom"),
-                status: localStorage.getItem("status"),
+                // Enforce fast refresh
+                socket.emit("refresh-catchup", {
+                    user: localStorage.getItem("userref"),
+                    room: localStorage.getItem("activeroom"),
+                    status: localStorage.getItem("status"),
+                });
+            }
+
+            // DATABASE EVENTS
+            // load code from database
+            db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
+                if (snap.val()) {
+                    setCode(snap.val());
+                }
             });
-        }
 
-        // DATABASE EVENTS
-        // load code from database
-        db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
-            if (snap.val()) {
-                setCode(snap.val());
-            }
-        });
-
-        // UPDATE USERS COLLABORATIONS ON NEW JOIN
-        db.ref("/joins/" + activeroom + "/contributors/").on(
-            "child_added",
-            (snap) => {
+            // UPDATE USERS COLLABORATIONS ON NEW JOIN
+            db.ref("/joins/" + activeroom + "/contributors/").on("child_added", (snap) => {
                 setcontributors(snap.val());
-            }
-        );
-        // UPDATE USERS COLLABORATIONS ON LEAVE
-        db.ref("/joins/" + activeroom + "/contributors/").on(
-            "child_removed",
-            (snap) => {
+            });
+            // UPDATE USERS COLLABORATIONS ON LEAVE
+            db.ref("/joins/" + activeroom + "/contributors/").on("child_removed", (snap) => {
                 if (snap.val()) {
                     setcontributors(snap.val());
                 }
-            }
-        );
-
-    }, [activeroom]);
+            });
+        },
+        [activeroom]
+    );
 
     let fakekey = 0;
-
 
     // RUN ONCE ON MOUNTING
     useEffect(function () {
         // Check user state
         var loggedin = true;
-        let userref = localStorage.getItem('userref');
+        let userref = localStorage.getItem("userref");
         if (userref === "" || userref == undefined || userref == null) {
             loggedin = false;
             document.body.innerHTML = `
@@ -231,18 +230,17 @@ function Live() {
 
                     <h1 style="padding: 5px; text-align: center; background-color: "var(--black); color: var(--white) "> Redirecting to Homepage </h1>
                     <p style="text-align: center; font-size: var(--font_normal)"> Login first to use Join Code. Thanks for being a JoinCoder!  </p>
-                </div>`
+                </div>`;
 
             setTimeout(() => {
-                history.push('/');
+                history.push("/");
                 window.location.reload();
             }, 5000);
         }
 
         if (loggedin) {
-
             // Avail active room inside the useeffect;
-            var activeroom = localStorage.getItem('activeroom');
+            var activeroom = localStorage.getItem("activeroom");
 
             // CLEAR CONSOLE ON LOAD
             setTimeout(() => {
@@ -254,9 +252,7 @@ function Live() {
             socket.on("requestaccess", (data) => {
                 db.ref("/joins/" + data.room).once("value", (snap) => {
                     if (snap.val().initiator === localStorage.getItem("userref")) {
-                        var access = window.confirm(
-                            data.user + " wants to collaborate to " + data.room
-                        );
+                        var access = window.confirm(data.user + " wants to collaborate to " + data.room);
                         var res = {
                             access: access,
                             user: data.user,
@@ -282,7 +278,6 @@ function Live() {
                 alert("Room does not exist, Create one instead!");
             });
 
-
             // CODE UPDATE NOTIFY
             socket.on("codeupdate", (code) => {
                 // GET THE CODE FROM DATABASE AND SET IT
@@ -294,62 +289,61 @@ function Live() {
             });
 
             // UPDATE ONLINE USERS
-            socket.on('onlineuserschangenotify', () => {
-                db.ref('/joins/' + activeroom + '/contributors/').once('value', (snap) => {
+            socket.on("onlineuserschangenotify", () => {
+                db.ref("/joins/" + activeroom + "/contributors/").once("value", (snap) => {
                     if (snap.val()) {
                         setcontributors(snap.val());
                     }
-                })
-            })
+                });
+            });
 
             // UPDATE USERS ON ANY CHANGE
-            db.ref('/joins/' + activeroom + '/contributors/').on('value', (snap) => {
+            db.ref("/joins/" + activeroom + "/contributors/").on("value", (snap) => {
                 updateUsers();
-            })
+            });
 
-            // ACTIVITY SPACE DYNAMICS            
+            // ACTIVITY SPACE DYNAMICS
             // activity space width
-            let as_width = $('.activity_space').outerWidth();
+            let as_width = $(".activity_space").outerWidth();
 
             // resizable active_space
-            $('.activity_space').resizable({
+            $(".activity_space").resizable({
                 minWidth: 220,
-                handles: 'e',
+                handles: "e",
                 resize: () => {
-                    as_width = $('.activity_space').outerWidth();
+                    as_width = $(".activity_space").outerWidth();
                     toggleInputOrient(as_width);
                 },
                 stop: () => {
-                    as_width = $('.activity_space').outerWidth();
+                    as_width = $(".activity_space").outerWidth();
                     toggleInputOrient(as_width);
-                }
+                },
             });
 
             // Maintain the activity_space content on resize
             function toggleInputOrient(checkWidth) {
                 if (checkWidth < 300) {
-                    $('.join_room_input').css('flex-direction', 'column');
-                    $('join_inputtext').css('width', '10px !important');
-                    $('.joinbutton').css('margin-top', '5px');
-                }
-                else {
-                    $('.join_room_input').css('flex-direction', 'row');
-                    $('.joinbutton').css('margin-top', '0px');
+                    $(".join_room_input").css("flex-direction", "column");
+                    $("join_inputtext").css("width", "10px !important");
+                    $(".joinbutton").css("margin-top", "5px");
+                } else {
+                    $(".join_room_input").css("flex-direction", "row");
+                    $(".joinbutton").css("margin-top", "0px");
                 }
             }
 
-            $('.activity_header').on('click', () => {
+            $(".activity_header").on("click", () => {
                 console.log(window.innerWidth);
                 if (window.innerWidth < 900) {
-                    $('.activity_inner').toggle();
+                    $(".activity_inner").toggle();
                 }
             });
 
             window.onresize = () => {
                 if (window.innerWidth > 900) {
-                    $('.activity_inner').show();
+                    $(".activity_inner").show();
                 }
-            }
+            };
         }
     }, []);
 
@@ -389,7 +383,7 @@ function Live() {
             <div className="live_body">
                 <div className="activity_space">
                     <h3 className="activity_header"> Activity </h3>
-                    <div className='activity_inner'>
+                    <div className="activity_inner">
                         <div className="createactivitybutton">
                             <button
                                 className="btn btn-info button"
@@ -400,52 +394,42 @@ function Live() {
                                 }}
                             >
                                 Create a New JoinCode
-                        </button>
+                            </button>
                             <div className="join_room_input">
                                 <input
                                     type="text"
                                     value={joinroom}
-                                    placeholder='Enter a room'
+                                    placeholder="Enter a room"
                                     onChange={(e) => {
                                         setjoinroom(e.target.value);
                                     }}
-                                    className='join_inputtext'
+                                    className="join_inputtext"
                                 />
-                                <button
-                                    className="btn btn-success button joinbutton"
-                                    onClick={enterJoin}>
+                                <button className="btn btn-success button joinbutton" onClick={enterJoin}>
                                     Join
                                 </button>
                             </div>
                         </div>
                         <div className="activity">
                             <h4 className="flave_title"> Active JoinCode </h4>
-                            {activeroom ? (
-                                <h4 className='active_joincode'>
-                                    {activeroom}
-                                </h4>
-                            ) : (
-                                    ""
-                                )}
+                            {activeroom ? <h4 className="active_joincode">{activeroom}</h4> : ""}
                             <h4 className="flave_title"> Developers </h4>
                             <ul className="user_lists">
-                                {
-                                    Object.keys(contributors).map((user) => {
-                                        return (
-                                            <li key={fakekey++}>
-                                                {(contributors && (contributors[user].status == 'online')) ?
-                                                    (<div className='online_mark'></div>)
-                                                    :
-                                                    (<div className='offline_mark'></div>)
-                                                }
-                                                <h5>
-                                                    {user}
-                                                    {user == initiator ? "(Lead)" : ""}
-                                                </h5>
-                                            </li>
-                                        );
-                                    })
-                                }
+                                {Object.keys(contributors).map((user) => {
+                                    return (
+                                        <li key={fakekey++}>
+                                            {contributors && contributors[user].status == "online" ? (
+                                                <div className="online_mark"></div>
+                                            ) : (
+                                                <div className="offline_mark"></div>
+                                            )}
+                                            <h5>
+                                                {user}
+                                                {user == initiator ? "(Lead)" : ""}
+                                            </h5>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </div>
                     </div>
@@ -456,49 +440,49 @@ function Live() {
                             <Joincode size={18} />
                         </div>
 
-                        <button
-                            className="btn btn-danger button margin_around"
-                            onClick={logOut}
-                        >
+                        <button className="btn btn-danger button margin_around" onClick={logOut}>
                             Leave
                         </button>
                     </div>
-                    <div className='codeinteracts'>
-                        <button
-                            className="btn btn-success button margin_around"
-                            onClick={runCode}>
+                    <div className="codeinteracts">
+                        <button className="btn btn-success button margin_around" onClick={runCode}>
                             Run
                         </button>
 
                         <button
                             className="btn btn-info button margin_around"
-                            onClick={() => { setCode(jsbeautify(code)) }}>
+                            onClick={() => {
+                                setCode(jsbeautify(code));
+                            }}
+                        >
                             Pretify Code
                         </button>
 
                         <button
                             className="btn btn-secondary button margin_around"
                             style={{
-                                float: 'right',
+                                float: "right",
                                 marginRight: "10px",
-                                clear: 'right',
+                                clear: "right",
                             }}
-                            onClick={loadSavedCode}>
+                            onClick={loadSavedCode}
+                        >
                             Load Last Saved
                         </button>
 
                         <button
                             className="btn btn-primary button margin_around"
                             style={{
-                                float: 'right',
-                                marginRight: "10px"
+                                float: "right",
+                                marginRight: "10px",
                             }}
-                            onClick={saveCode}>
+                            onClick={saveCode}
+                        >
                             Save
                         </button>
                     </div>
 
-                    <h5 className='lead joincode_header'> {activeroom} </h5>
+                    <h5 className="lead joincode_header"> {activeroom} </h5>
 
                     {/* <textarea className='code'
                         value={code}
@@ -506,36 +490,36 @@ function Live() {
                     </textarea> */}
 
                     <ControlledEditor
-                        className='code'
+                        className="code"
                         language="javascript"
                         options={{
                             minimap: {
                                 enabled: false,
                             },
-                            fontSize: '16pt',
+                            fontSize: "16pt",
                             folding: false,
                             scrollbar: {
-                                horizontal: 'hidden',
-                                vertical: 'hidden',
+                                horizontal: "hidden",
+                                vertical: "hidden",
                             },
                             hover: {
-                                enabled: false
+                                enabled: false,
                             },
-                            lineDecorationsWidth: '20',
+                            lineDecorationsWidth: "20",
                             lineNumbers: "on",
                             mouseWheelZoom: true,
                             renderIndentGuides: false,
-                            wordWrap: 'bounded',
+                            wordWrap: "bounded",
                             automaticLayout: true,
                         }}
                         value={code}
-                        onChange={(e, value) => { updateCode(e, value) }}
-
+                        onChange={(e, value) => {
+                            updateCode(e, value);
+                        }}
                     />
-
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
 
