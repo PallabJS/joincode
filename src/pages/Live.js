@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import { socket } from "../components/socket";
+import { socket } from "../settings/socket/socket";
 
 import firebase from "firebase";
 
@@ -21,7 +21,7 @@ import "jquery-ui/ui/widgets/resizable";
 import "../css/resizable.css";
 import "jquery-ui/ui/widgets/mouse.js";
 
-import { db, auth } from "../components/firebase";
+import { db, auth } from "../settings/firebase/firebase";
 
 function Live() {
     const history = useHistory();

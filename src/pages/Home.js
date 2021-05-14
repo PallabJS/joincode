@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 
 import firebase from "firebase";
-import { auth, db } from "../components/firebase";
+import { auth, db } from "../settings/firebase/firebase";
 
 import "bootstrap/dist/css/bootstrap.css";
 import Images from "react-bootstrap/Image";
