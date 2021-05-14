@@ -1,99 +1,80 @@
-import React, { useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom";
 
-import 'bootstrap/dist/css/bootstrap.css';
-import Images from 'react-bootstrap/Image';
+import firebase from "firebase";
+import { auth, db } from "../components/firebase";
 
-import '../css/home.css'
-import Signup from '../components/Signup';
-import Login from '../components/Login';
-import Joincode from '../components/Joincode';
+import "bootstrap/dist/css/bootstrap.css";
+import Images from "react-bootstrap/Image";
 
-import step1 from '../images/step1.png';
-import step2 from '../images/step2.png';
-import step3 from '../images/step3.png';
+import "../css/home.css";
+import Signup from "../components/Signup";
+import Login from "../components/Login";
+import Joincode from "../components/Joincode";
 
 function Home() {
-
     // HISTORY
     let history = useHistory();
 
-    // Login info
-    const [loginemail, setLoginemail] = useState('');
-    const [loginpassword, setLoginpassword] = useState('');
-
-
-    // Signup info
-    const [username, setUsername] = useState('');
-    const [signupemail, setSignupemail] = useState('');
-    const [signuppassword, setSignuppassword] = useState('');
-
+    console.log(firebase.auth().currentUser);
     // Redirect on login
     useEffect(() => {
-        var login = {};
-        login.user = localStorage.getItem('userref');
-        login.activeroom = localStorage.getItem('activeroom');
-        if (login.user && login.activeroom) {
-            history.push('/live');
-        }
-    }, [])
+        // Clear Console
+        setTimeout(() => {
+            console.clear();
+            console.log("Welcome to JoinCode");
+        }, 300);
+        setTimeout(() => {
+            console.clear();
+            console.log("Welcome to JoinCode");
+        }, 1000);
+    });
 
     return (
-        <div id='home'>
-            <div className='home_header_container'>
-                <div className='home_header'>
+        <div id="home">
+            <div className="home_header_container">
+                <div className="home_header">
                     <Joincode size={30} />
-                    <div className='home_intro'>
-                        <p className='home_intro'>
-                            JoinCode is a free platform for programmers to develop code snippets for your projects. Develop code pieces for your projects collectively, effectively and comfortably.
+                    <div className="home_intro">
+                        <p className="home_intro">
+                            JoinCode is a free platform for programmers to develop code snippets for your projects.
+                            Develop code pieces for your projects collectively, effectively and comfortably.
                         </p>
-                        <ul className='home_steps'>
-                            <h4 className='flave_title'> JoinCode is just about three steps: </h4>
-                            <li style={{ marginLeft: '5%' }}> Create a JoinCode </li>
-                            <li style={{ marginLeft: '5%' }}> Develop your code </li>
-                            <li style={{ marginLeft: '5%' }}> Take your code to the project </li>
+                        <ul className="home_steps">
+                            <h4 className="flave_title"> JoinCode is just about three steps: </h4>
+                            <li style={{ marginLeft: "5%" }}> Create a JoinCode </li>
+                            <li style={{ marginLeft: "5%" }}> Develop your code </li>
+                            <li style={{ marginLeft: "5%" }}> Take your code to the project </li>
                         </ul>
                     </div>
-                    <div className='home_demo'>
-                        <div id='demo1'>
+                    <div className="home_demo">
+                        <div id="demo1">
                             <h3> Setup </h3>
-                            <Images src={step1} fluid />
+                            <Images src={"/images/step1.png"} fluid />
                         </div>
-                        <div id='demo2'>
+                        <div id="demo2">
                             <h3> Develop </h3>
-                            <Images src={step2} fluid />
+                            <Images src={"/images/step2.png"} fluid />
                         </div>
-                        <div id='demo2'>
+                        <div id="demo2">
                             <h3> Export </h3>
-                            <Images src={step3} fluid />
+                            <Images src={"/images/step3.png"} fluid />
                         </div>
                     </div>
                 </div>
 
-                <div className='home_forms'>
-                    <div className='form_container'>
-                        <Login
-                            loginemail={loginemail}
-                            loginpassword={loginpassword}
-                            setLoginemail={setLoginemail}
-                            setLoginpassword={setLoginpassword}
-                        />
+                <div className="home_forms">
+                    <div className="form_container">
+                        <Login />
                     </div>
                     <br />
-                    <div className='form_container'>
-                        <Signup
-                            signupemail={signupemail}
-                            signuppassword={signuppassword}
-                            setSignupemail={setSignupemail}
-                            setSignuppassword={setSignuppassword}
-                            username={username}
-                            setUsername={setUsername}
-                        />
+                    <div className="form_container">
+                        <Signup />
                     </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
 export default Home;

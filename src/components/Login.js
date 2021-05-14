@@ -2,12 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 // Firebase functions
-import { auth, db } from './firebase';
+import firebase from 'firebase';
 import DatabaseFunctions from './db';
+import { db, auth } from './firebase';
 
-function Login({ loginemail, loginpassword, setLoginemail, setLoginpassword }) {
+function Login() {
 
-    const db = new DatabaseFunctions();
+    const dbfns = new DatabaseFunctions();
+
+
+    // Login info
+    const [loginemail, setloginemail] = useState('');
+    const [loginpassword, setloginpassword] = useState('');
+
+    // Login ready
+    const [ready, setready] = useState(false);
 
     // Login states
     const [error, setError] = useState('');
@@ -17,16 +26,16 @@ function Login({ loginemail, loginpassword, setLoginemail, setLoginpassword }) {
     // Update Login Inputs
     const updateInput = (name, e) => {
         if (name === 'loginemail') {
-            setLoginemail(e.target.value);
+            setloginemail(e.target.value);
         }
         if (name === 'loginpassword') {
-            setLoginpassword(e.target.value);
+            setloginpassword(e.target.value);
         }
         setError('');
     }
 
     // Validate login input data
-    function isLoginFormValid() {
+    function validateEmail() {
         const emailRegx = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
         if (loginemail !== "" && emailRegx.test(loginemail)) {
             return true;
@@ -37,21 +46,32 @@ function Login({ loginemail, loginpassword, setLoginemail, setLoginpassword }) {
 
     // Login handler firebase
     function login() {
-        if (isLoginFormValid()) {
+        if (validateEmail()) {
             auth.signInWithEmailAndPassword(loginemail, loginpassword)
-                .then(() => {
+                .then((e) => {
+                    setready(true);
                     setError(false);
-                    localStorage.setItem('userref', db.getName(loginemail));
-                    history.push('/live');
                 }).catch((error) => {
-                    console.log(error);
                     setError(error.message);
                 })
         }
         else {
-            setError('Email is invalid');
+            setError('Please enter a valid email address');
         }
     }
+
+    useEffect(() => {
+        if (ready) {
+            firebase.auth().onAuthStateChanged(user => {
+                db.ref('/users/' + user.uid).once('value', (snap) => {
+                    localStorage.setItem('username', snap.val().username);
+                    localStorage.setItem('email', snap.val().email);
+                    localStorage.setItem('uid', user.uid);
+                    history.push('/live');
+                })
+            })
+        }
+    }, [ready]);
 
     return (
         <div className='login_container'>

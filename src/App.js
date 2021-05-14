@@ -1,9 +1,12 @@
 // React Core Components
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
 
-// External Libraries
-// import socketClient from 'socket.io-client';
+
+// FIREBASE STUFFS
+// Firebase functions
+import { auth, db } from './components/firebase';
+
 
 // APP COMPONENTS
 import Home from './pages/Home';
@@ -13,24 +16,42 @@ import './App.css';
 import './css/flave.css';
 
 function App() {
-
-  const host = "http://localhost:8000";
   const history = useHistory();
+  const [userAgent, setUserAgent] = useState(window.navigator.userAgent);
 
-  // useEffect(() => {
-  //   const socket = socketClient(host);
+  window.addEventListener('load', () => {
+    setUserAgent(window.navigator.userAgent);
+    checkDevice();
+  });
 
-  //   // CLEAN UP THE EFFECT on Context Change
-  //   return () => socket.disconnect();
-  // }, [])
+  function checkDevice() {
+    // CHECK MEDIA
+    if ((/(Android)+|(iPhone)+/g).test(userAgent)) {
+      console.log("android");
+      let notSupportedMessage = document.createElement('h6');
+      notSupportedMessage.innerHTML = "Your device is not supported. Please switch to desktop";
+      notSupportedMessage.style.marginTop = '45vh';
+      notSupportedMessage.style.textAlign = 'center';
+
+      document.body.innerHTML = "";
+      document.body.appendChild(notSupportedMessage);
+      window.stop();
+    }
+  }
+
+  useEffect(() => {
+
+
+    checkDevice();
+  }, [userAgent]);
 
 
   return (
     <div className="App">
       <Router>
         <Switch>
-          <Route path='/live'> <Live /> </Route>
-          <Route exact path='/'> <Home /> </Route>
+          <Route path='/live'> <Live auth={auth} db={db} /> </Route>
+          <Route exact path='/'> <Home auth={auth} db={db} /> </Route>
         </Switch>
       </Router>
     </div>
