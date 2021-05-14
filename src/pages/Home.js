@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 
-import firebase from "firebase";
 import { auth, db } from "../settings/firebase/firebase";
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -13,23 +12,6 @@ import Login from "../components/Login";
 import Joincode from "../components/Joincode";
 
 function Home() {
-    // HISTORY
-    let history = useHistory();
-
-    console.log(firebase.auth().currentUser);
-    // Redirect on login
-    useEffect(() => {
-        // Clear Console
-        setTimeout(() => {
-            console.clear();
-            console.log("Welcome to JoinCode");
-        }, 300);
-        setTimeout(() => {
-            console.clear();
-            console.log("Welcome to JoinCode");
-        }, 1000);
-    });
-
     return (
         <div id="home">
             <div className="home_header_container">

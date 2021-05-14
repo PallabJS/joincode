@@ -5,29 +5,38 @@ import { useHistory } from "react-router-dom";
 import firebase from "firebase";
 import DatabaseFunctions from "../settings/firebase/db";
 import { db, auth } from "../settings/firebase/firebase";
+import { encodeAuth } from "../functions/authfunctions";
 
 function Login() {
-    const dbfns = new DatabaseFunctions();
+    // React hooks
+    let history = useHistory();
 
     // Login info
-    const [loginemail, setloginemail] = useState("");
-    const [loginpassword, setloginpassword] = useState("");
+    const [logincreds, setLogincreds] = useState({
+        email: "",
+        password: "",
+    });
 
     // Login ready
     const [ready, setready] = useState(false);
 
     // Login states
     const [error, setError] = useState("");
-    let history = useHistory();
     const [show, setShow] = useState(false);
 
     // Update Login Inputs
     const updateInput = (name, e) => {
-        if (name === "loginemail") {
-            setloginemail(e.target.value);
+        if (name === "email") {
+            setLogincreds({
+                ...logincreds,
+                email: e.target.value,
+            });
         }
-        if (name === "loginpassword") {
-            setloginpassword(e.target.value);
+        if (name === "password") {
+            setLogincreds({
+                ...logincreds,
+                password: e.target.value,
+            });
         }
         setError("");
     };
@@ -35,7 +44,7 @@ function Login() {
     // Validate login input data
     function validateEmail() {
         const emailRegx = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-        if (loginemail !== "" && emailRegx.test(loginemail)) {
+        if (logincreds.email !== "" && emailRegx.test(logincreds.email)) {
             return true;
         } else return false;
     }
@@ -43,7 +52,7 @@ function Login() {
     // Login handler firebase
     function login() {
         if (validateEmail()) {
-            auth.signInWithEmailAndPassword(loginemail, loginpassword)
+            auth.signInWithEmailAndPassword(logincreds.email, logincreds.password)
                 .then((e) => {
                     setready(true);
                     setError(false);
@@ -58,11 +67,12 @@ function Login() {
 
     useEffect(() => {
         if (ready) {
+            // catch user login event
             firebase.auth().onAuthStateChanged((user) => {
                 db.ref("/users/" + user.uid).once("value", (snap) => {
-                    localStorage.setItem("username", snap.val().username);
-                    localStorage.setItem("email", snap.val().email);
-                    localStorage.setItem("uid", user.uid);
+                    // using email and uid to construct a token
+                    let bAuth = encodeAuth(snap.val().email, user.uid);
+                    localStorage.setItem("user", bAuth);
                     history.push("/live");
                 });
             });
@@ -91,9 +101,9 @@ function Login() {
                             name="loginemail"
                             type="text"
                             className="flave_forminput"
-                            value={loginemail}
+                            value={logincreds.email}
                             onChange={(e) => {
-                                updateInput("loginemail", e);
+                                updateInput("email", e);
                             }}
                         />
                     </div>
@@ -103,9 +113,9 @@ function Login() {
                             name="loginpassword"
                             type="password"
                             className="flave_forminput"
-                            value={loginpassword}
+                            value={logincreds.password}
                             onChange={(e) => {
-                                updateInput("loginpassword", e);
+                                updateInput("password", e);
                             }}
                         />
                     </div>

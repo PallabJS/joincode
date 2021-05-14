@@ -2,13 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import { socket } from "../settings/socket/socket";
 
+// Firebase
 import firebase from "firebase";
+import { db, auth } from "../settings/firebase/firebase";
 
+// App
 import Joincode from "../components/Joincode";
 import jsbeautify from "js-beautify";
 
+// UI Libraries
 import { ControlledEditor } from "@monaco-editor/react";
 
+// Customs
 import "../css/live.css";
 import "../css/brand.css";
 
@@ -21,7 +26,8 @@ import "jquery-ui/ui/widgets/resizable";
 import "../css/resizable.css";
 import "jquery-ui/ui/widgets/mouse.js";
 
-import { db, auth } from "../settings/firebase/firebase";
+// Functions
+import { decodeAuth } from "../functions/authfunctions";
 
 function Live() {
     const history = useHistory();
@@ -31,7 +37,11 @@ function Live() {
     const [contributors, setcontributors] = useState({});
 
     // USER DETAIL
-    const [username, setusername] = useState("");
+    const [user, setUser] = useState({
+        uid: "",
+        username: "",
+        email: "",
+    });
 
     // CREATE INSTANCE MODAL
     const [show, setShow] = useState(false);
@@ -45,17 +55,18 @@ function Live() {
 
     // Code State
     const [code, setCode] = useState("");
-    const [codeactive, setCodeactive] = useState("off");
+    const [codeactive, setCodeactive] = useState(false);
 
     // CREATE A NEW JOINCODE
     function createJoincode() {
         // check if room already exist
         db.ref("/joins/" + newroom).once("value", (snap) => {
+            // create a new room only if noexistent
             if (!snap.val()) {
-                // Create a room
+                // Create a new room
                 db.ref("/joins/" + newroom)
                     .set({
-                        initiator: localStorage.getItem("username"),
+                        initiator: user.username,
                         code: "//Start writing you codes here",
                     })
                     .then(() => {
@@ -63,7 +74,7 @@ function Live() {
                         enterJoin();
                     });
             } else {
-                alert("Room already exists");
+                alert("This room already exists, try another one");
             }
         });
     }
@@ -71,8 +82,9 @@ function Live() {
     // ENTER A JOINCODE
     function enterJoin() {
         var data = {
-            userid: localStorage.getItem("uid"),
+            userid: user.uid,
             room: joinroom,
+            username: user.username,
         };
         socket.emit("joinroom", data);
 
@@ -149,12 +161,10 @@ function Live() {
     const logOut = () => {
         console.log("room: ", activeroom);
         auth.signOut().then(() => {
-            db.ref("/joins/" + activeroom + "/contributors/" + username)
+            db.ref("/joins/" + activeroom + "/contributors/" + user.username)
                 .child("status")
                 .set("offline");
-            localStorage.removeItem("uid");
-            localStorage.removeItem("username");
-            localStorage.removeItem("email");
+            localStorage.clear();
             history.push("/");
         });
     };
@@ -183,81 +193,93 @@ function Live() {
     }
 
     //////////////////////////////      ACTIVE ROOM USEEFFECT     ///////////////////////////////////
-    useEffect(
-        function () {
-            setusername(localStorage.getItem("username"));
 
-            // INITIALIZE PREVIOUS SESSION
-            let active = localStorage.getItem("codeactive");
-            let room = localStorage.getItem("activeroom");
+    // SET LOGGED IN USER
+    useEffect(() => {
+        let user = decodeAuth(localStorage.getItem("user"));
+        db.ref("users")
+            .child(user.uid)
+            .once("value", (snap) => {
+                setUser({ ...user, username: snap.val().username });
+            });
+    }, []);
 
+    useEffect(() => {
+        // INITIALIZE PREVIOUS SESSION
+        let active = localStorage.getItem("codeactive");
+        let room = localStorage.getItem("activeroom");
+
+        // If previously active was true and activeroom was set, then restore session
+        if (room && active) {
             // Load the session and live coding
             setCodeactive(active);
             setactiveroom(room);
+        }
+    });
 
-            if (activeroom) {
-                // USERS UPDATE
+    // When user gets into a room
+    useEffect(() => {
+        if (activeroom && codeactive) {
+            // SET ROOM INITIATOR AND CONTRIBUTORS
+            updateUsers();
+
+            // Keep joined on refresh
+            socket.emit("refresh-catchup", {
+                userid: user.uid,
+                username: user.username,
+                room: activeroom,
+                status: localStorage.getItem("status"),
+            });
+
+            // Synchronize code with the database
+            db.ref("/joins/" + activeroom + "/code/code").on("value", (snap) => {
+                if (snap.val()) {
+                    setCode(snap.val());
+                }
+            });
+
+            // UPDATE USERS ON ANY CHANGE
+            db.ref("/joins/" + activeroom + "/contributors/").on("value", (snap) => {
                 updateUsers();
+            });
 
-                // Keep joined on refresh
-                socket.emit("refresh-catchup", {
-                    userid: localStorage.getItem("uid"),
-                    username: localStorage.getItem("username"),
-                    room: localStorage.getItem("activeroom"),
-                    status: localStorage.getItem("status"),
-                });
+            // UPDATE USERS COLLABORATIONS ON NEW JOIN
+            db.ref("/joins/" + activeroom + "/contributors/").on("child_added", (snap) => {
+                setcontributors(snap.val());
+            });
+            // UPDATE USERS COLLABORATIONS ON LEAVE
+            db.ref("/joins/" + activeroom + "/contributors/").on("child_removed", (snap) => {
+                if (snap.val()) {
+                    setCode(snap.val());
+                }
+            });
 
-                // Synchronize code with the database
-                db.ref("/joins/" + activeroom + "/code/code").on("value", (snap) => {
-                    if (snap.val()) {
-                        setCode(snap.val());
-                    }
-                });
-
-                // UPDATE USERS ON ANY CHANGE
-                db.ref("/joins/" + activeroom + "/contributors/").on("value", (snap) => {
-                    updateUsers();
-                });
-
-                // UPDATE USERS COLLABORATIONS ON NEW JOIN
-                db.ref("/joins/" + activeroom + "/contributors/").on("child_added", (snap) => {
+            // Update Online status of contributors
+            db.ref("/joins/" + activeroom + "/contributors/").on("value", (snap) => {
+                if (snap.val()) {
                     setcontributors(snap.val());
-                });
-                // UPDATE USERS COLLABORATIONS ON LEAVE
-                db.ref("/joins/" + activeroom + "/contributors/").on("child_removed", (snap) => {
-                    if (snap.val()) {
-                        setCode(snap.val());
-                    }
-                });
+                }
+            });
 
-                // Update Online status of contributors
-                db.ref("/joins/" + activeroom + "/contributors/").on("value", (snap) => {
-                    if (snap.val()) {
-                        setcontributors(snap.val());
-                    }
-                });
+            // load code from database
+            db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
+                if (snap.val()) {
+                    setCode(snap.val());
+                }
+            });
 
-                // load code from database
-                db.ref("/joins/" + activeroom + "/code/code/").once("value", (snap) => {
-                    if (snap.val()) {
-                        setCode(snap.val());
-                    }
-                });
+            // Online status
+            db.ref("/joins/" + activeroom + "/contributors/" + localStorage.getItem("username"))
+                .child("status")
+                .set("online");
+        }
 
-                // Online status
-                db.ref("/joins/" + activeroom + "/contributors/" + localStorage.getItem("username"))
-                    .child("status")
-                    .set("online");
-            }
-
-            return function () {
-                db.ref("/joins/" + activeroom + "/code/")
-                    .child("code")
-                    .off();
-            };
-        },
-        [activeroom]
-    );
+        return function () {
+            db.ref("/joins/" + activeroom + "/code/")
+                .child("code")
+                .off();
+        };
+    }, [activeroom, codeactive]);
 
     let fakekey = 0;
 
@@ -307,17 +329,18 @@ function Live() {
 
         // CLEAR CONSOLE ON LOAD
         setTimeout(() => {
-            console.clear();
+            // console.clear();
             console.log("Welcome to JoinCode");
         }, 500);
 
-        // HANDLE JOIN REQUEST
-        socket.on("requestaccess", (data) => {
+        // HANDLE JOIN REQUEST(only the initiator gets this access)
+        socket.on("request_for_initiator_access", (data) => {
+            console.log(data);
             db.ref("/joins/" + data.room).once("value", (snap) => {
-                if (snap.val().initiator === localStorage.getItem("username")) {
+                if (snap.val().initiator === user.username) {
                     let access = window.confirm(data.username + " wants to collaborate to " + data.room);
                     data.access = access;
-                    socket.emit("requestaccess-response", data);
+                    // socket.emit("requestaccess-response", data);
                 }
             });
         });
@@ -328,7 +351,7 @@ function Live() {
             localStorage.setItem("activeroom", data.room);
             localStorage.setItem("status", "joined");
             setactiveroom(data.room);
-            setCodeactive("on");
+            setCodeactive(true);
             window.location.reload();
         });
 
@@ -369,6 +392,7 @@ function Live() {
         };
     }, []);
 
+    // HANDLE SAVE BUTTON ACTION
     useEffect(() => {
         // CTRL+S save
         document.getElementsByClassName("code")[0].addEventListener("keydown", function (e) {

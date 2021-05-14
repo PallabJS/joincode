@@ -5,16 +5,19 @@ export default class DatabaseFunctions {
     updateUsersCount(action) {
         let userscount = 0;
         // Get total user count
-        db.ref("/info/totalusers/").once("value", (snap) => {
+        db.ref("/info/totalusers").once("value", (snap) => {
             userscount = snap.val();
+            if (action === "add") {
+                db.ref("/info")
+                    .child("totalusers")
+                    .set(Number(userscount) + 1);
+            }
+            if (action === "remove") {
+                db.ref("/info")
+                    .child("totalusers")
+                    .set(Number(userscount) - 1);
+            }
         });
-
-        if (action === "add") {
-            db.ref("/info").set({ totalusers: Number(userscount) + 1 });
-        }
-        if (action === "remove") {
-            db.ref("/info").set({ totalusers: Number(userscount) - 1 });
-        }
     }
 
     // Create a new user entry

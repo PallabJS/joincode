@@ -1,6 +1,7 @@
 // React Core Components
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Switch, Route, useHistory } from "react-router-dom";
+import { SnackbarProvider } from "notistack";
 
 // FIREBASE STUFFS
 // Firebase functions
@@ -42,20 +43,24 @@ function App() {
     }, [userAgent]);
 
     return (
-        <div className="App">
-            <Router>
-                <Switch>
-                    <Route path="/live">
-                        {" "}
-                        <Live auth={auth} db={db} />{" "}
-                    </Route>
-                    <Route exact path="/">
-                        {" "}
-                        <Home auth={auth} db={db} />{" "}
-                    </Route>
-                </Switch>
-            </Router>
-        </div>
+        <SnackbarProvider
+            maxSnack={3}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            autoHideDuration={3000}
+        >
+            <div className="App">
+                <Router>
+                    <Switch>
+                        <Route path="/live">
+                            <Live auth={auth} db={db} />
+                        </Route>
+                        <Route exact path="/">
+                            <Home auth={auth} db={db} />
+                        </Route>
+                    </Switch>
+                </Router>
+            </div>
+        </SnackbarProvider>
     );
 }
 

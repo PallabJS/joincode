@@ -1,36 +1,50 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 
+import { useSnackbar } from "notistack";
+
 import firebase from "firebase";
 import DatabaseFunctions from "../settings/firebase/db";
 import { db, auth } from "../settings/firebase/firebase";
 
 function Signup() {
+    // Hooks
     const history = useHistory();
+    const { enqueueSnackbar } = useSnackbar();
 
     // Some Database functions
     const dbfns = new DatabaseFunctions();
 
     // Signup info
-    const [username, setusername] = useState("");
-    const [signupemail, setsignupemail] = useState("");
-    const [signuppassword, setsignuppassword] = useState("");
+    const [signupcreds, setSignupcreds] = useState({
+        email: "",
+        password: "",
+        username: "",
+    });
 
     // Signup states
     const [error, setError] = useState("");
     const [show, setShow] = useState(false);
-    const [ready, setready] = useState(false);
 
     // Update Signup Inputs
     const updateInput = (name, e) => {
         if (name === "username") {
-            setusername(e.target.value);
+            setSignupcreds({
+                ...signupcreds,
+                username: e.target.value,
+            });
         }
-        if (name === "signupemail") {
-            setsignupemail(e.target.value);
+        if (name === "email") {
+            setSignupcreds({
+                ...signupcreds,
+                email: e.target.value,
+            });
         }
-        if (name === "signuppassword") {
-            setsignuppassword(e.target.value);
+        if (name === "password") {
+            setSignupcreds({
+                ...signupcreds,
+                password: e.target.value,
+            });
         }
         setError("");
     };
@@ -38,7 +52,7 @@ function Signup() {
     // Validate Email Address
     function checkSignupForm() {
         const emailRegx = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-        if (signupemail !== "" && emailRegx.test(signupemail)) {
+        if (signupcreds.email !== "" && emailRegx.test(signupcreds.email)) {
             return true;
         } else {
             return false;
@@ -46,51 +60,55 @@ function Signup() {
     }
     function clearState() {
         setTimeout(() => {
-            setusername("");
-            setsignupemail("");
-            setsignuppassword("");
+            setSignupcreds({ email: "", password: "", username: "" });
         }, 1000);
     }
 
     // Signup handler firebase
     function signup() {
         if (checkSignupForm()) {
-            auth.createUserWithEmailAndPassword(signupemail, signuppassword)
-                .then((user) => {
+            // Check username
+            if (!signupcreds.username) {
+                setError("Please choose a valid username");
+                return false;
+            }
+            // Check password
+            if (!signupcreds.password) {
+                setError("Enter a password");
+                return false;
+            } else {
+                if (signupcreds.password.length < 6) {
+                    setError("Choose a stronger password(length >= 6 characters)");
+                    return false;
+                }
+            }
+
+            // Finally process signup
+            auth.createUserWithEmailAndPassword(signupcreds.email, signupcreds.password)
+                .then((res) => {
+                    let user = res.user;
                     setError(false);
-                    setready(true);
-                    setError("Signup Successful");
+
+                    // create user entry
+                    dbfns.createUser({
+                        uid: user.uid,
+                        username: signupcreds.username,
+                        email: signupcreds.email,
+                    });
+
+                    enqueueSnackbar("Signup successful", { variant: "success" });
                 })
                 .catch((error) => {
                     setError(error.message);
                 });
         } else {
-            setError(true);
+            setError("Invalid email address");
         }
     }
 
-    useEffect(() => {
-        if (ready) {
-            firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-                    // create user entry
-                    dbfns.createUser({
-                        uid: user.uid,
-                        username: username,
-                        email: signupemail,
-                    });
-                    db.ref("/users/" + user.uid).once("value", (snap) => {
-                        localStorage.setItem("username", snap.val().username);
-                        localStorage.setItem("email", snap.val().email);
-                        localStorage.setItem("uid", user.uid);
-
-                        clearState();
-                        history.push("/live");
-                    });
-                }
-            });
-        }
-    }, [ready]);
+    db.ref("/info/totalusers").once("value", (snap) => {
+        console.log(snap.val());
+    });
 
     return (
         <div className="signup_container">
@@ -103,8 +121,7 @@ function Signup() {
                     setShow(!show);
                 }}
             >
-                {" "}
-                Sign Up for a new account{" "}
+                Sign Up for a new account
             </h5>
             {show ? (
                 <form action="" className="flave_form">
@@ -114,7 +131,7 @@ function Signup() {
                             name="username"
                             type="text"
                             className="flave_forminput"
-                            value={username}
+                            value={signupcreds.username}
                             onChange={(e) => {
                                 updateInput("username", e);
                             }}
@@ -126,9 +143,9 @@ function Signup() {
                             name="signupemail"
                             type="email"
                             className="flave_forminput"
-                            value={signupemail}
+                            value={signupcreds.email}
                             onChange={(e) => {
-                                updateInput("signupemail", e);
+                                updateInput("email", e);
                             }}
                         />
                     </div>
@@ -138,9 +155,9 @@ function Signup() {
                             name="signuppassword"
                             type="password"
                             className="flave_forminput"
-                            value={signuppassword}
+                            value={signupcreds.password}
                             onChange={(e) => {
-                                updateInput("signuppassword", e);
+                                updateInput("password", e);
                             }}
                         />
                     </div>

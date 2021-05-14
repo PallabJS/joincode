@@ -1,6 +1,9 @@
+import { serverUrl } from "../serverinfo";
+
 // SOCKET CLIENT
 import socketclient from "socket.io-client";
 
+console.log(serverUrl);
+
 // SOCKET CLIENTS
-export const socket = socketclient("https://joincode.herokuapp.com/");
-// export const socket = socketclient("http://localhost:8080");
+export const socket = socketclient(serverUrl);
