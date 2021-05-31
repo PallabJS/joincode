@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 
 import { auth, db } from "../settings/firebase/firebase";
+import firebase from "firebase";
+import { Button } from "@material-ui/core";
 
 import "bootstrap/dist/css/bootstrap.css";
 import Images from "react-bootstrap/Image";

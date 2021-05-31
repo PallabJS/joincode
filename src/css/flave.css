@@ -1,19 +1,15 @@
-
 a {
     color: black;
     text-decoration: none;
 }
 
 /* CUSTOM CLASSES */
-.margin_around
-{
+.margin_around {
     margin: 5px 10px;
 }
-.padding_inside
-{
+.padding_inside {
     padding: 10px;
 }
-
 
 /* PAGE HEADER */
 .flave_header1 {
@@ -80,14 +76,15 @@ a {
     border: none;
 }
 .button {
-    font-size: 12pt;
+    font-size: 12pt !important;
     padding: 0 20px !important;
-    border-radius: 2px;
+    border-radius: 2px !important;
     border: none !important;
+    margin: 5px !important;
 }
 .flave_button {
-    color: black;
-    background-color: var(--shade);
+    color: white !important;
+    background-color: var(--shade) !important;
     border-radius: 2px;
     padding: 5px;
     outline: none;
