@@ -10,6 +10,9 @@ import { db, auth } from "../settings/firebase/firebase";
 import Joincode from "../components/Joincode";
 import jsbeautify from "js-beautify";
 
+// db api
+import { connectionApi } from "../api/connection/connectionapi";
+
 // UI Libraries
 import { ControlledEditor } from "@monaco-editor/react";
 
@@ -57,24 +60,14 @@ function Live() {
     const [code, setCode] = useState("");
     const [codeactive, setCodeactive] = useState(false);
 
-    // CREATE A NEW JOINCODE
-    function createJoincode() {
-        // check if room already exist
-        db.ref("/joins/" + newroom).once("value", (snap) => {
-            // create a new room only if noexistent
-            if (!snap.val()) {
-                // Create a new room
-                db.ref("/joins/" + newroom)
-                    .set({
-                        initiator: user.username,
-                        code: "//Start writing you codes here",
-                    })
-                    .then(() => {
-                        handleClose();
-                        enterJoin();
-                    });
+    // CREATE JOINCODE HANDLER
+    function handleCreateJoincode() {
+        connectionApi.createJoincode(newroom, user.username).then((res) => {
+            if (res.success) {
+                handleClose();
+                enterJoin();
             } else {
-                alert("This room already exists, try another one");
+                alert(`could not create joincode - '${newroom}'`);
             }
         });
     }
@@ -191,8 +184,6 @@ function Live() {
             $(".joinbutton").css("margin-top", "0px");
         }
     }
-
-    //////////////////////////////      ACTIVE ROOM USEEFFECT     ///////////////////////////////////
 
     // SET LOGGED IN USER
     useEffect(() => {
@@ -436,7 +427,7 @@ function Live() {
                     <Button variant="secondary" onClick={handleClose}>
                         Close
                     </Button>
-                    <Button variant="primary" onClick={createJoincode}>
+                    <Button variant="primary" onClick={handleCreateJoincode}>
                         Create
                     </Button>
                 </Modal.Footer>
