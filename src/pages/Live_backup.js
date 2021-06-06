@@ -51,7 +51,7 @@ function Live() {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const [newroom, setnewroom] = useState("");
-    const [activeroom, setactiveroom] = useState("");
+    const [activeroom, setActiveroom] = useState("");
 
     // JOIN A JoinCode
     const [joinroom, setjoinroom] = useState("");
@@ -65,7 +65,7 @@ function Live() {
         connectionApi.createJoincode(newroom, user.username).then((res) => {
             if (res.success) {
                 handleClose();
-                enterJoin();
+                handleJoin();
             } else {
                 alert(`could not create joincode - '${newroom}'`);
             }
@@ -73,13 +73,14 @@ function Live() {
     }
 
     // ENTER A JOINCODE
-    function enterJoin() {
+    function handleJoin() {
         var data = {
-            userid: user.uid,
+            userId: user.uid,
             room: joinroom,
-            username: user.username,
+            userName: user.username,
         };
         socket.emit("joinroom", data);
+
         setnewroom("");
         setjoinroom("");
     }
@@ -117,13 +118,10 @@ function Live() {
             );
         }, 0);
         setTimeout(() => {
-            $("#savebutton").animate(
-                {
+            $("#savebutton").animate({
                     backgroundColor: "rgb(20, 130, 239)",
-                },
-                100
-            );
-        }, 300);
+                }, 100);
+            }, 300);
     }
 
     // LOAD LAST SAVED CODE
@@ -151,6 +149,7 @@ function Live() {
 
     // LOG OUT
     const logOut = () => {
+        console.log("room: ", activeroom);
         auth.signOut().then(() => {
             db.ref("/joins/" + activeroom + "/contributors/" + user.username)
                 .child("status")
@@ -203,7 +202,7 @@ function Live() {
         if (room && active) {
             // Load the session and live coding
             setCodeactive(active);
-            setactiveroom(room);
+            setActiveroom(room);
         }
     });
 
@@ -221,7 +220,7 @@ function Live() {
                 status: localStorage.getItem("status"),
             });
 
-            // Synchronize code with the database
+            // Synchronize code from the database
             db.ref("/joins/" + activeroom + "/code/code").on("value", (snap) => {
                 if (snap.val()) {
                     setCode(snap.val());
@@ -257,6 +256,11 @@ function Live() {
                     setCode(snap.val());
                 }
             });
+
+            // // Online status
+            // db.ref("/joins/" + activeroom + "/contributors/" + localStorage.getItem("username"))
+            //     .child("status")
+            //     .set("online");
         }
 
         return function () {
@@ -283,32 +287,24 @@ function Live() {
 
         // HANDLE JOIN REQUEST(only the initiator gets this access)
         socket.on("request_for_initiator_access", (data) => {
+            console.log(data);
             db.ref("/joins/" + data.room).once("value", (snap) => {
-                const userData = snap.val()
-                if (userData.initiator === user.username) {
-                    console.log(data)
-
+                if (snap.val().initiator === user.username) {
                     let access = window.confirm(data.username + " wants to collaborate to " + data.room);
                     data.access = access;
-                    socket.emit("requestaccess-response", data);
+                    // socket.emit("requestaccess-response", data);
                 }
             });
         });
 
-        // HANDLE JOIN REQUEST APPROVED
+        // HANDLE REQUEST APPROVED
         socket.on("requestapproved", (data) => {
             localStorage.setItem("codeactive", "on");
             localStorage.setItem("activeroom", data.room);
             localStorage.setItem("status", "joined");
-            setactiveroom(data.room);
+            setActiveroom(data.room);
             setCodeactive(true);
-
-            // set initiator as one of the contrubutors and mark online
-            if(user.username) {
-                db.ref("/joins/" + activeroom + "/contributors/" + user.username).set({
-                    status: 'online'
-                })
-            }
+            window.location.reload();
         });
 
         // HANDLE NOSUCHROOM
@@ -346,7 +342,7 @@ function Live() {
                 $(".activity_inner").show();
             }
         };
-    }, [user]);
+    }, []);
 
     // HANDLE SAVE BUTTON ACTION
     useEffect(() => {
@@ -366,7 +362,6 @@ function Live() {
 
     return (
         <div className="live">
-            {/* MODAL */}
             <Modal show={show}>
                 <Modal.Header>
                     <Modal.Title> Create a new JoinCode </Modal.Title>
@@ -423,7 +418,7 @@ function Live() {
                                     }}
                                     className="join_inputtext"
                                 />
-                                <button className="btn btn-success button joinbutton" onClick={enterJoin}>
+                                <button className="btn btn-success button joinbutton" onClick={handleJoin}>
                                     Join
                                 </button>
                             </div>
