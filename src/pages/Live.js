@@ -99,23 +99,21 @@ function Live() {
 
     // SAVE THE CODE
     function saveCode() {
+        indicateSave();
+
         db.ref("/joins/" + activeroom + "/code/")
             .child("save")
-            .set(code, () => {
-                indicateSave();
-            });
+            .set(code, () => {});
     }
 
     // Save indication
     function indicateSave() {
-        setTimeout(() => {
-            $("#savebutton").animate(
-                {
-                    backgroundColor: "rgb(20, 230, 20)",
-                },
-                100
-            );
-        }, 0);
+        $("#savebutton").animate(
+            {
+                backgroundColor: "rgb(20, 230, 20)",
+            },
+            10, 'linear'
+        );
         setTimeout(() => {
             $("#savebutton").animate(
                 {
@@ -123,7 +121,7 @@ function Live() {
                 },
                 100
             );
-        }, 300);
+        }, 500);
     }
 
     // LOAD LAST SAVED CODE
@@ -176,10 +174,11 @@ function Live() {
         if (checkWidth < 300) {
             $(".join_room_input").css("flex-direction", "column");
             $("join_inputtext").css("width", "10px !important");
-            $(".joinbutton").css("margin-top", "5px");
+            $(".joinbutton").css("margin", "5px");
+            $(".joinbutton").css("margin-top", "10px");
         } else {
             $(".join_room_input").css("flex-direction", "row");
-            $(".joinbutton").css("margin-top", "0px");
+            $(".joinbutton").css("margin", "0px");
         }
     }
 
@@ -348,28 +347,30 @@ function Live() {
         };
     }, [user]);
 
+    // Save button calback
+    function handleSave(e) {
+        if (e.ctrlKey && e.key == "s") {
+            e.preventDefault();
+            saveCode();
+        }
+    }
+
     // HANDLE SAVE BUTTON ACTION
     useEffect(() => {
         // CTRL+S save
-        document.getElementsByClassName("code")[0].addEventListener("keydown", function (e) {
-            if (e.ctrlKey && e.key == "s") {
-                e.preventDefault();
-                saveCode();
-            }
-        });
+        document.getElementsByClassName("code")[0].addEventListener("keydown", handleSave)
+        
         return function () {
-            try {
-                document.getElementsByClassName("code")[0].removeEventListener("keydown", () => {});
-            } catch (e) {}
+            document.getElementsByClassName("code")[0].removeEventListener("keydown", handleSave);
         };
-    }, [code]);
+    }, [code, activeroom]);
 
     return (
         <div className="live">
             {/* MODAL */}
             <Modal show={show}>
                 <Modal.Header>
-                    <Modal.Title> Create a new JoinCode </Modal.Title>
+                    <Modal.Title> Create  new JoinCode </Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body>
@@ -400,7 +401,7 @@ function Live() {
 
             <div className="live_body">
                 <div className="activity_space">
-                    <h3 className="activity_header"> Activity </h3>
+                    <h4 className="activity_header"> Activity </h4>
                     <div className="activity_inner">
                         <div className="createactivitybutton">
                             <button
@@ -409,9 +410,9 @@ function Live() {
                                 style={{
                                     width: "100%",
                                     margin: "0px",
+                                    padding: '5px',
                                 }}
-                            >
-                                Create a New JoinCode
+                            > New JoinCode
                             </button>
                             <div className="join_room_input">
                                 <input
@@ -441,10 +442,10 @@ function Live() {
                                             ) : (
                                                 <div className="offline_mark"></div>
                                             )}
-                                            <h5>
+                                            <h6>
                                                 {contributors ? user : ""}
                                                 {user == initiator ? " (Lead)" : ""}
-                                            </h5>
+                                            </h6>
                                         </li>
                                     );
                                 })}

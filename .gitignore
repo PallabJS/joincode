@@ -5,6 +5,7 @@
 /joincode_backend
 /.pnp
 .pnp.js
+.firebase
 
 # testing
 /coverage

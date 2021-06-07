@@ -24,19 +24,19 @@
 /* JOINCODE LOGO HEADER */
 .j_title {
     color: yellow;
-    font-size: var(--font_big);
+    font-size: var(--font_normal);
     font-weight: 1000;
-    font-family: "Cursive";
+    font-family: cursive;
 }
 .c_title {
     color: blue;
-    font-size: var(--font_big);
+    font-size: var(--font_normal);
     font-weight: 1000;
-    font-family: "Cursive";
+    font-family: cursive;
 }
 .brand_text {
-    font-size: var(--font_large);
-    padding: 5px 10px;
+    font-size: var(--font_normal);
+    padding: 0px 10px;
     border-radius: 2px;
     color: black;
     background-color: rgb(200, 200, 200);
